@@ -60,4 +60,42 @@ public class AccountService
             Balance = account.Balance
         };
     }
+
+    public async Task<AccountDto?> UpdateAccountAsync(
+        Guid id,
+
+        UpdateAccountDto dto)
+    {
+        var account = await _repository.GetByIdAsync(id);
+
+        if (account == null)
+
+            return null;
+
+        account.Name = dto.Name;
+        account.Balance = dto.Balance;
+        await _repository.UpdateAsync(account);
+
+        return new AccountDto
+        {
+            Id = account.Id,
+
+            Name = account.Name,
+
+            Balance = account.Balance
+        };
+    }
+
+    public async Task<bool> DeleteAccountAsync(Guid id)
+    {
+        var account = await _repository.GetByIdAsync(id);
+
+        if (account == null)
+
+            return false;
+
+        await _repository.DeleteAsync(account);
+
+        return true;
+    }
 }

@@ -11,4 +11,6 @@ public interface IAccountRepository
     Task<Account> AddAsync(Account account);
 
     Task DeleteAsync(Account account);
+
+    Task UpdateAsync(Account account);
 }

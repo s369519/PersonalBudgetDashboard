@@ -2,7 +2,7 @@ using Budget.Application.Services;
 using Budget.Domain.Entities;
 using Microsoft.AspNetCore.Mvc;
 using Budget.Application.DTOs.Accounts;
-
+using Budget.Application.DTOs.Accounts;
 
 namespace Budget.Api.Controllers;
 
@@ -50,5 +50,32 @@ public class AccountsController : ControllerBase
             return NotFound();
 
         return Ok(account);
+    }
+
+    [HttpPut("{id}")]
+
+public async Task<IActionResult> Update(
+        Guid id,
+        UpdateAccountDto dto)
+    {
+        var updated = await _service.UpdateAccountAsync(id, dto);
+
+        if (updated == null)
+
+            return NotFound();
+
+        return Ok(updated);
+    }
+    [HttpDelete("{id}")]
+
+public async Task<IActionResult> Delete(Guid id)
+    {
+        var deleted = await _service.DeleteAccountAsync(id);
+
+        if (!deleted)
+
+            return NotFound();
+
+        return NoContent();
     }
 }
