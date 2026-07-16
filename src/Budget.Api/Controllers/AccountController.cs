@@ -1,0 +1,54 @@
+using Budget.Application.Services;
+using Budget.Domain.Entities;
+using Microsoft.AspNetCore.Mvc;
+using Budget.Application.DTOs.Accounts;
+
+
+namespace Budget.Api.Controllers;
+
+
+[ApiController]
+[Route("api/[controller]")]
+public class AccountsController : ControllerBase
+{
+    private readonly AccountService _service;
+
+
+    public AccountsController(AccountService service)
+    {
+        _service = service;
+    }
+
+
+    [HttpGet]
+    public async Task<IActionResult> Get()
+    {
+        var accounts = await _service.GetAccountsAsync();
+
+        return Ok(accounts);
+    }
+
+
+    [HttpPost]
+
+    public async Task<IActionResult> Create(CreateAccountDto dto)
+
+    {
+
+        var created = await _service.CreateAccountAsync(dto);
+
+        return Ok(created);
+
+    }
+
+    [HttpGet("{id}")]
+    public async Task<IActionResult> GetById(Guid id)
+    {
+        var account = await _service.GetAccountByIdAsync(id);
+
+        if (account == null)
+            return NotFound();
+
+        return Ok(account);
+    }
+}
