@@ -9,6 +9,7 @@ using Budget.Infrastructure.Repositories;
 using Budget.Infrastructure.Repositories;
 using Budget.Application.Services;
 using Budget.Application.Interfaces;
+using Budget.Api.Middleware;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -70,6 +71,8 @@ if (app.Environment.IsDevelopment())
 app.UseHttpsRedirection();
 
 app.UseCors("React");
+
+app.UseMiddleware<ExceptionHandlingMiddleware>();
 
 app.UseAuthorization();
 

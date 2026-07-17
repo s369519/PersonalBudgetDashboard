@@ -1,8 +1,19 @@
+using System.ComponentModel.DataAnnotations;
+
 namespace Budget.Application.DTOs.Accounts;
 
 public class CreateAccountDto
 {
+    [Required(ErrorMessage = "Account name is required.")]
+    [StringLength(
+        100,
+        MinimumLength = 2,
+        ErrorMessage = "Account name must be between 2 and 100 characters.")]
     public string Name { get; set; } = string.Empty;
 
+    [Range(
+        -1_000_000_000,
+        1_000_000_000,
+        ErrorMessage = "Balance must be between -1,000,000,000 and 1,000,000,000.")]
     public decimal Balance { get; set; }
 }
