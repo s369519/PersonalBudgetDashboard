@@ -14,41 +14,36 @@ public class AccountRepository : IAccountRepository
         _context = context;
     }
 
-
     public async Task<IEnumerable<Account>> GetAllAsync()
     {
-        return await _context.Accounts.ToListAsync();
+        return await _context.Accounts
+            .OrderBy(account => account.Name)
+            .ToListAsync();
     }
-
 
     public async Task<Account?> GetByIdAsync(Guid id)
     {
         return await _context.Accounts
-            .FirstOrDefaultAsync(x => x.Id == id);
+            .FirstOrDefaultAsync(account => account.Id == id);
     }
-
 
     public async Task<Account> AddAsync(Account account)
     {
-        _context.Accounts.Add(account);
-
+        await _context.Accounts.AddAsync(account);
         await _context.SaveChangesAsync();
 
         return account;
     }
 
+    public async Task UpdateAsync(Account account)
+    {
+        _context.Accounts.Update(account);
+        await _context.SaveChangesAsync();
+    }
 
     public async Task DeleteAsync(Account account)
     {
         _context.Accounts.Remove(account);
-
-        await _context.SaveChangesAsync();
-    }
-
-    public async Task UpdateAsync(Account account)
-    {
-        _context.Accounts.Update(account);
-
         await _context.SaveChangesAsync();
     }
 }

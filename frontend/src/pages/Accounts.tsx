@@ -1,12 +1,14 @@
 import { useEffect, useState } from "react";
-import { Trash2, WalletCards } from "lucide-react";
+import { Pencil, Trash2, WalletCards } from "lucide-react";
 
 import api from "../api/client";
 import AccountForm from "../components/forms/AccountForm";
+import EditAccountForm from "../components/forms/EditAccountForm";
 
 import type {
     Account,
     CreateAccount,
+    UpdateAccount,
 } from "../types/account";
 
 function formatCurrency(amount: number) {
@@ -22,6 +24,7 @@ export default function Accounts() {
     const [isLoading, setIsLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
     const [deletingId, setDeletingId] = useState<string | null>(null);
+    const [editingAccount, setEditingAccount] = useState<Account | null>(null);
 
     async function loadAccounts() {
         try {
@@ -50,6 +53,17 @@ export default function Accounts() {
         await loadAccounts();
     }
 
+    async function handleUpdateAccount(
+        id: string,
+        account: UpdateAccount,
+    ) {
+        await api.put(`/Accounts/${id}`, account);
+
+        setEditingAccount(null);
+
+        await loadAccounts();
+    }
+
     async function handleDeleteAccount(account: Account) {
         const shouldDelete = window.confirm(
             `Delete the account "${account.name}"?`,
@@ -70,6 +84,9 @@ export default function Accounts() {
                     (currentAccount) => currentAccount.id !== account.id,
                 ),
             );
+            if (editingAccount?.id === account.id) {
+                setEditingAccount(null);
+            }
         } catch (requestError) {
             console.error("Could not delete account:", requestError);
 
@@ -114,7 +131,15 @@ export default function Accounts() {
             )}
 
             <div className="grid gap-6 xl:grid-cols-[380px_1fr]">
-                <AccountForm onSubmit={handleCreateAccount} />
+                {editingAccount ? (
+                    <EditAccountForm
+                        account={editingAccount}
+                        onSubmit={handleUpdateAccount}
+                        onCancel={() => setEditingAccount(null)}
+                    />
+                ) : (
+                    <AccountForm onSubmit={handleCreateAccount} />
+                )}
 
                 <section className="rounded-xl border border-slate-200 bg-white p-6 shadow-sm">
                     <div className="mb-6">
@@ -163,19 +188,25 @@ export default function Accounts() {
                                             </h3>
                                         </div>
 
-                                        <button
-                                            type="button"
-                                            onClick={() =>
-                                                handleDeleteAccount(account)
-                                            }
-                                            disabled={
-                                                deletingId === account.id
-                                            }
-                                            aria-label={`Delete ${account.name}`}
-                                            className="rounded-lg p-2 text-slate-400 transition hover:bg-red-50 hover:text-red-600 disabled:cursor-not-allowed disabled:opacity-50"
-                                        >
-                                            <Trash2 size={18} />
-                                        </button>
+                                        <div className="flex gap-1">
+                                            <button
+                                                type="button"
+                                                onClick={() => setEditingAccount(account)}
+                                                aria-label={`Edit ${account.name}`}
+                                                className="rounded-lg p-2 text-slate-400 transition hover:bg-blue-50 hover:text-blue-600"
+                                            >
+                                                <Pencil size={18} />
+                                            </button>
+                                            <button
+                                                type="button"
+                                                onClick={() => handleDeleteAccount(account)}
+                                                disabled={deletingId === account.id}
+                                                aria-label={`Delete ${account.name}`}
+                                                className="rounded-lg p-2 text-slate-400 transition hover:bg-red-50 hover:text-red-600 disabled:cursor-not-allowed disabled:opacity-50"
+                                            >
+                                                <Trash2 size={18} />
+                                            </button>
+                                        </div>
                                     </div>
 
                                     <p className="mt-8 text-2xl font-bold text-slate-900">

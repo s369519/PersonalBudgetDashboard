@@ -13,89 +13,77 @@ public class AccountService
         _repository = repository;
     }
 
-
     public async Task<IEnumerable<AccountDto>> GetAccountsAsync()
     {
         var accounts = await _repository.GetAllAsync();
 
-        return accounts.Select(account => new AccountDto
-        {
-            Id = account.Id,
-            Name = account.Name,
-            Balance = account.Balance
-        });
-    }
-
-
-    public async Task<AccountDto> CreateAccountAsync(CreateAccountDto dto)
-    {
-        var account = new Account
-        {
-            Id = Guid.NewGuid(),
-            Name = dto.Name,
-            Balance = dto.Balance
-        };
-
-        var created = await _repository.AddAsync(account);
-
-        return new AccountDto
-        {
-            Id = created.Id,
-            Name = created.Name,
-            Balance = created.Balance
-        };
+        return accounts.Select(MapToDto);
     }
 
     public async Task<AccountDto?> GetAccountByIdAsync(Guid id)
     {
         var account = await _repository.GetByIdAsync(id);
 
-        if (account == null)
-            return null;
+        return account is null
+            ? null
+            : MapToDto(account);
+    }
 
-        return new AccountDto
+    public async Task<AccountDto> CreateAccountAsync(
+        CreateAccountDto dto)
+    {
+        var account = new Account
         {
-            Id = account.Id,
-            Name = account.Name,
-            Balance = account.Balance
+            Id = Guid.NewGuid(),
+            Name = dto.Name.Trim(),
+            Balance = dto.Balance
         };
+
+        var createdAccount = await _repository.AddAsync(account);
+
+        return MapToDto(createdAccount);
     }
 
     public async Task<AccountDto?> UpdateAccountAsync(
         Guid id,
-
         UpdateAccountDto dto)
     {
         var account = await _repository.GetByIdAsync(id);
 
-        if (account == null)
-
+        if (account is null)
+        {
             return null;
+        }
 
-        account.Name = dto.Name;
+        account.Name = dto.Name.Trim();
         account.Balance = dto.Balance;
+
         await _repository.UpdateAsync(account);
 
-        return new AccountDto
-        {
-            Id = account.Id,
-
-            Name = account.Name,
-
-            Balance = account.Balance
-        };
+        return MapToDto(account);
     }
 
     public async Task<bool> DeleteAccountAsync(Guid id)
     {
         var account = await _repository.GetByIdAsync(id);
 
-        if (account == null)
-
+        if (account is null)
+        {
             return false;
+        }
 
         await _repository.DeleteAsync(account);
 
         return true;
+    }
+
+    private static AccountDto MapToDto(Account account)
+    {
+        return new AccountDto
+        {
+            Id = account.Id,
+            Name = account.Name,
+            Balance = account.Balance
+        };
     }
 }

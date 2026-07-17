@@ -8,3 +8,5 @@ export type CreateAccount = {
     name: string;
     balance: number;
 };
+
+export type UpdateAccount = CreateAccount;

@@ -39,15 +39,19 @@ public class AccountsController : ControllerBase
         return Ok(account);
     }
 
-    [HttpPut("{id}")]
+    [HttpPut("{id:guid}")]
+
     public async Task<IActionResult> Update(
         Guid id,
         UpdateAccountDto dto)
     {
-        var updated = await _service.UpdateAccountAsync(id, dto);
-        if (updated == null)
+        var account =
+            await _service.UpdateAccountAsync(id, dto);
+        if (account is null)
+        {
             return NotFound();
-        return Ok(updated);
+        }
+        return Ok(account);
     }
 
     [HttpDelete("{id}")]
