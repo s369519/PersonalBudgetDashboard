@@ -6,7 +6,6 @@ using Budget.Infrastructure.Repositories;
 using Budget.Api.Middleware;
 using System.Text;
 using Budget.Api.Authentication;
-using Budget.Infrastructure.Data;
 using Budget.Infrastructure.Identity;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Identity;
