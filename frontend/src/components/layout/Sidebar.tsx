@@ -1,11 +1,17 @@
 import {
     LayoutDashboard,
+    LogOut,
     ReceiptText,
-    WalletCards,
     Tags,
+    WalletCards,
 } from "lucide-react";
 
-import { NavLink } from "react-router-dom";
+import {
+    NavLink,
+    useNavigate,
+} from "react-router-dom";
+
+import { useAuth } from "../../auth/AuthContext";
 
 const navigationItems = [
     {
@@ -31,8 +37,23 @@ const navigationItems = [
 ];
 
 export default function Sidebar() {
+    const navigate = useNavigate();
+
+    const {
+        user,
+        logout,
+    } = useAuth();
+
+    function handleLogout() {
+        logout();
+
+        navigate("/login", {
+            replace: true,
+        });
+    }
+
     return (
-        <aside className="fixed left-0 top-0 h-screen w-64 border-r border-slate-800 bg-slate-950 text-white">
+        <aside className="fixed left-0 top-0 flex h-screen w-64 flex-col border-r border-slate-800 bg-slate-950 text-white">
             <div className="flex h-20 items-center border-b border-slate-800 px-6">
                 <div>
                     <p className="text-lg font-bold">
@@ -45,7 +66,7 @@ export default function Sidebar() {
                 </div>
             </div>
 
-            <nav className="space-y-2 p-4">
+            <nav className="flex-1 space-y-2 p-4">
                 {navigationItems.map((item) => {
                     const Icon = item.icon;
 
@@ -70,6 +91,28 @@ export default function Sidebar() {
                     );
                 })}
             </nav>
+
+            <div className="border-t border-slate-800 p-4">
+                <div className="mb-4 px-2">
+                    <p className="truncate text-sm font-medium text-white">
+                        {user?.displayName}
+                    </p>
+
+                    <p className="truncate text-xs text-slate-400">
+                        {user?.email}
+                    </p>
+                </div>
+
+                <button
+                    type="button"
+                    onClick={handleLogout}
+                    className="flex w-full items-center gap-3 rounded-lg px-4 py-3 text-sm font-medium text-slate-300 transition hover:bg-slate-900 hover:text-white"
+                >
+                    <LogOut size={20} />
+
+                    <span>Sign out</span>
+                </button>
+            </div>
         </aside>
     );
 }

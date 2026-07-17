@@ -1,11 +1,12 @@
 using Budget.Application.DTOs.Categories;
 using Budget.Application.Services;
 using Microsoft.AspNetCore.Mvc;
-
+using Budget.Api.Extensions;
+using Microsoft.AspNetCore.Authorization;
 
 namespace Budget.Api.Controllers;
 
-
+[Authorize]
 [ApiController]
 [Route("api/[controller]")]
 public class CategoriesController : ControllerBase
@@ -22,7 +23,7 @@ public class CategoriesController : ControllerBase
     [HttpGet]
     public async Task<IActionResult> Get()
     {
-        var categories = await _service.GetCategoriesAsync();
+        var categories = await _service.GetCategoriesAsync(User.GetUserId());
 
         return Ok(categories);
     }
@@ -31,7 +32,7 @@ public class CategoriesController : ControllerBase
     [HttpPost]
     public async Task<IActionResult> Create(CreateCategoryDto dto)
     {
-        var category = await _service.CreateCategoryAsync(dto);
+        var category = await _service.CreateCategoryAsync(dto, User.GetUserId());
 
         return Ok(category);
     }
@@ -41,7 +42,7 @@ public class CategoriesController : ControllerBase
         Guid id,
         UpdateCategoryDto dto)
     {
-        var category = await _service.UpdateAsync(id, dto);
+        var category = await _service.UpdateAsync(id, dto, User.GetUserId());
         if (category is null)
         {
             return NotFound();
@@ -52,7 +53,7 @@ public class CategoriesController : ControllerBase
     [HttpDelete("{id:guid}")]
     public async Task<IActionResult> Delete(Guid id)
     {
-        var deleted = await _service.DeleteAsync(id);
+        var deleted = await _service.DeleteAsync(id, User.GetUserId());
         if (!deleted)
         {
             return NotFound();

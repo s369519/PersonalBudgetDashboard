@@ -14,21 +14,25 @@ public class TransactionRepository : ITransactionRepository
         _context = context;
     }
 
-    public async Task<IEnumerable<Transaction>> GetAllAsync()
+    public async Task<IEnumerable<Transaction>> GetAllAsync(string userId)
     {
         return await _context.Transactions
             .Include(transaction => transaction.Account)
             .Include(transaction => transaction.Category)
+            .Where(transaction =>
+                transaction.Account.UserId == userId)
             .OrderByDescending(transaction => transaction.Date)
             .ToListAsync();
     }
 
-    public async Task<Transaction?> GetByIdAsync(Guid id)
+    public async Task<Transaction?> GetByIdAsync(Guid id, string userId)
     {
         return await _context.Transactions
             .Include(transaction => transaction.Account)
             .Include(transaction => transaction.Category)
-            .FirstOrDefaultAsync(transaction => transaction.Id == id);
+            .FirstOrDefaultAsync(transaction =>
+                transaction.Id == id &&
+                transaction.Account.UserId == userId);
     }
 
     public async Task<Transaction> AddAsync(Transaction transaction)

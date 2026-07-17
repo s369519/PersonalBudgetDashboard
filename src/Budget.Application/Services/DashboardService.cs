@@ -15,15 +15,14 @@ public class DashboardService
     }
 
 
-    public async Task<DashboardSummaryDto>
-        GetSummaryAsync()
+    public async Task<DashboardSummaryDto> GetSummaryAsync(string userId)
     {
         var transactions =
-            await _repository.GetTransactionsAsync();
+            await _repository.GetTransactionsAsync(userId);
 
 
         var balance =
-            await _repository.GetTotalBalanceAsync();
+            await _repository.GetTotalBalanceAsync(userId);
 
 
         var income =
@@ -59,11 +58,10 @@ public class DashboardService
     }
 
 
-    public async Task<IEnumerable<CategorySpendingDto>>
-        GetCategorySpendingAsync()
+    public async Task<IEnumerable<CategorySpendingDto>> GetCategorySpendingAsync(string userId)
     {
         var transactions =
-            await _repository.GetTransactionsAsync();
+            await _repository.GetTransactionsAsync(userId);
 
 
         return transactions
@@ -77,4 +75,6 @@ public class DashboardService
                     Math.Abs(t.Amount))
             });
     }
+
+    
 }

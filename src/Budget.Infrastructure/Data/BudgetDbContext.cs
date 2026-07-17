@@ -54,5 +54,24 @@ public class BudgetDbContext
             .WithMany(category => category.Transactions)
             .HasForeignKey(transaction => transaction.CategoryId)
             .OnDelete(DeleteBehavior.Restrict);
+
+        modelBuilder.Entity<Account>()
+            .HasOne<ApplicationUser>()
+            .WithMany()
+            .HasForeignKey(account => account.UserId)
+            .OnDelete(DeleteBehavior.Cascade);
+
+        modelBuilder.Entity<Category>()
+            .HasOne<ApplicationUser>()
+            .WithMany()
+            .HasForeignKey(category => category.UserId)
+            .OnDelete(DeleteBehavior.Cascade);
+
+        modelBuilder.Entity<Account>()
+            .HasIndex(account => account.UserId);
+            
+        modelBuilder.Entity<Category>()
+            .HasIndex(category => category.UserId);
+
     }
 }

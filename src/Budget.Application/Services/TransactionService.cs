@@ -21,23 +21,26 @@ public class TransactionService
         _categoryRepository = categoryRepository;
     }
 
-    public async Task<IEnumerable<TransactionDto>> GetTransactionsAsync()
+    public async Task<IEnumerable<TransactionDto>> GetTransactionsAsync(
+        string userId)
     {
         var transactions =
-            await _transactionRepository.GetAllAsync();
+            await _transactionRepository.GetAllAsync(userId);
 
         return transactions.Select(MapToDto);
     }
 
     public async Task<TransactionDto> CreateTransactionAsync(
-        CreateTransactionDto dto)
+        CreateTransactionDto dto,
+        string userId)
     {
         await ValidateTransactionAsync(
             dto.Description,
             dto.Amount,
             dto.Date,
             dto.AccountId,
-            dto.CategoryId);
+            dto.CategoryId,
+            userId);
 
         var transaction = new Transaction
         {
@@ -56,7 +59,8 @@ public class TransactionService
 
         var savedTransaction =
             await _transactionRepository.GetByIdAsync(
-                createdTransaction.Id);
+                createdTransaction.Id,
+                userId);
 
         if (savedTransaction is null)
         {
@@ -69,10 +73,13 @@ public class TransactionService
 
     public async Task<TransactionDto?> UpdateTransactionAsync(
         Guid id,
-        UpdateTransactionDto dto)
+        UpdateTransactionDto dto,
+        string userId)
     {
         var transaction =
-            await _transactionRepository.GetByIdAsync(id);
+            await _transactionRepository.GetByIdAsync(
+                id,
+                userId);
 
         if (transaction is null)
         {
@@ -84,7 +91,8 @@ public class TransactionService
             dto.Amount,
             dto.Date,
             dto.AccountId,
-            dto.CategoryId);
+            dto.CategoryId,
+            userId);
 
         transaction.Description = dto.Description.Trim();
         transaction.Amount = dto.Amount;
@@ -97,17 +105,23 @@ public class TransactionService
         await _transactionRepository.UpdateAsync(transaction);
 
         var updatedTransaction =
-            await _transactionRepository.GetByIdAsync(id);
+            await _transactionRepository.GetByIdAsync(
+                id,
+                userId);
 
         return updatedTransaction is null
             ? null
             : MapToDto(updatedTransaction);
     }
 
-    public async Task<bool> DeleteTransactionAsync(Guid id)
+    public async Task<bool> DeleteTransactionAsync(
+        Guid id,
+        string userId)
     {
         var transaction =
-            await _transactionRepository.GetByIdAsync(id);
+            await _transactionRepository.GetByIdAsync(
+                id,
+                userId);
 
         if (transaction is null)
         {
@@ -124,7 +138,8 @@ public class TransactionService
         decimal amount,
         DateTime date,
         Guid accountId,
-        Guid categoryId)
+        Guid categoryId,
+        string userId)
     {
         var errors = new Dictionary<string, string[]>();
 
@@ -160,7 +175,9 @@ public class TransactionService
         else
         {
             var account =
-                await _accountRepository.GetByIdAsync(accountId);
+                await _accountRepository.GetByIdAsync(
+                    accountId,
+                    userId);
 
             if (account is null)
             {
@@ -177,7 +194,9 @@ public class TransactionService
         else
         {
             var category =
-                await _categoryRepository.GetByIdAsync(categoryId);
+                await _categoryRepository.GetByIdAsync(
+                    categoryId,
+                    userId);
 
             if (category is null)
             {

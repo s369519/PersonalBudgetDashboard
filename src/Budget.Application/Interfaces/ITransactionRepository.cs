@@ -4,9 +4,12 @@ namespace Budget.Application.Interfaces;
 
 public interface ITransactionRepository
 {
-    Task<IEnumerable<Transaction>> GetAllAsync();
+    Task<IEnumerable<Transaction>> GetAllAsync(
+        string userId);
 
-    Task<Transaction?> GetByIdAsync(Guid id);
+    Task<Transaction?> GetByIdAsync(
+        Guid id,
+        string userId);
 
     Task<Transaction> AddAsync(Transaction transaction);
 

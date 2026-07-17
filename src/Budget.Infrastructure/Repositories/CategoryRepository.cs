@@ -45,4 +45,22 @@ public class CategoryRepository : ICategoryRepository
         _context.Categories.Remove(category);
         await _context.SaveChangesAsync();
     }
+
+    public async Task<IEnumerable<Category>> GetAllAsync(string userId)
+    {
+        return await _context.Categories
+            .Where(category => category.UserId == userId)
+            .OrderBy(category => category.Name)
+            .ToListAsync();
+    }
+
+    public async Task<Category?> GetByIdAsync(
+        Guid id,
+        string userId)
+    {
+        return await _context.Categories
+            .FirstOrDefaultAsync(category =>
+                category.Id == id &&
+                category.UserId == userId);
+    }
 }

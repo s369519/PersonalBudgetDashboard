@@ -10,8 +10,9 @@ public class Account
 
     public decimal Balance { get; set; }
 
-    public ICollection<Transaction> Transactions { get; set; }
+    public string UserId { get; set; } = string.Empty;
 
+    public ICollection<Transaction> Transactions { get; set; }
         = new List<Transaction>();
 
 }

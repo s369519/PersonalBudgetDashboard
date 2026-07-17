@@ -1,10 +1,12 @@
-using Budget.Application.Services;
-using Budget.Domain.Entities;
-using Microsoft.AspNetCore.Mvc;
+using Budget.Api.Extensions;
 using Budget.Application.DTOs.Accounts;
+using Budget.Application.Services;
+using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Mvc;
 
 namespace Budget.Api.Controllers;
 
+[Authorize]
 [ApiController]
 [Route("api/[controller]")]
 public class AccountsController : ControllerBase
@@ -19,47 +21,82 @@ public class AccountsController : ControllerBase
     [HttpGet]
     public async Task<IActionResult> Get()
     {
-        var accounts = await _service.GetAccountsAsync();
+        var userId = User.GetUserId();
+
+        var accounts =
+            await _service.GetAccountsAsync(userId);
+
         return Ok(accounts);
     }
 
-    [HttpPost]
-    public async Task<IActionResult> Create(CreateAccountDto dto)
-    {
-        var created = await _service.CreateAccountAsync(dto);
-        return Ok(created);
-    }
-
-    [HttpGet("{id}")]
+    [HttpGet("{id:guid}")]
     public async Task<IActionResult> GetById(Guid id)
     {
-        var account = await _service.GetAccountByIdAsync(id);
-        if (account == null)
-            return NotFound();
-        return Ok(account);
-    }
+        var userId = User.GetUserId();
 
-    [HttpPut("{id:guid}")]
-
-    public async Task<IActionResult> Update(
-        Guid id,
-        UpdateAccountDto dto)
-    {
         var account =
-            await _service.UpdateAccountAsync(id, dto);
+            await _service.GetAccountByIdAsync(
+                id,
+                userId);
+
         if (account is null)
         {
             return NotFound();
         }
+
         return Ok(account);
     }
 
-    [HttpDelete("{id}")]
+    [HttpPost]
+    public async Task<IActionResult> Create(
+        CreateAccountDto dto)
+    {
+        var userId = User.GetUserId();
+
+        var account =
+            await _service.CreateAccountAsync(
+                dto,
+                userId);
+
+        return Ok(account);
+    }
+
+    [HttpPut("{id:guid}")]
+    public async Task<IActionResult> Update(
+        Guid id,
+        UpdateAccountDto dto)
+    {
+        var userId = User.GetUserId();
+
+        var account =
+            await _service.UpdateAccountAsync(
+                id,
+                dto,
+                userId);
+
+        if (account is null)
+        {
+            return NotFound();
+        }
+
+        return Ok(account);
+    }
+
+    [HttpDelete("{id:guid}")]
     public async Task<IActionResult> Delete(Guid id)
     {
-        var deleted = await _service.DeleteAccountAsync(id);
+        var userId = User.GetUserId();
+
+        var deleted =
+            await _service.DeleteAccountAsync(
+                id,
+                userId);
+
         if (!deleted)
+        {
             return NotFound();
+        }
+
         return NoContent();
     }
 }

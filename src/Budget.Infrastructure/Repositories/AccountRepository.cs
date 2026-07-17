@@ -14,17 +14,23 @@ public class AccountRepository : IAccountRepository
         _context = context;
     }
 
-    public async Task<IEnumerable<Account>> GetAllAsync()
+    public async Task<IEnumerable<Account>> GetAllAsync(
+        string userId)
     {
         return await _context.Accounts
+            .Where(account => account.UserId == userId)
             .OrderBy(account => account.Name)
             .ToListAsync();
     }
 
-    public async Task<Account?> GetByIdAsync(Guid id)
+    public async Task<Account?> GetByIdAsync(
+        Guid id,
+        string userId)
     {
         return await _context.Accounts
-            .FirstOrDefaultAsync(account => account.Id == id);
+            .FirstOrDefaultAsync(account =>
+                account.Id == id &&
+                account.UserId == userId);
     }
 
     public async Task<Account> AddAsync(Account account)
@@ -37,7 +43,6 @@ public class AccountRepository : IAccountRepository
 
     public async Task UpdateAsync(Account account)
     {
-        _context.Accounts.Update(account);
         await _context.SaveChangesAsync();
     }
 

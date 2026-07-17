@@ -13,16 +13,21 @@ public class AccountService
         _repository = repository;
     }
 
-    public async Task<IEnumerable<AccountDto>> GetAccountsAsync()
+    public async Task<IEnumerable<AccountDto>> GetAccountsAsync(
+        string userId)
     {
-        var accounts = await _repository.GetAllAsync();
+        var accounts =
+            await _repository.GetAllAsync(userId);
 
         return accounts.Select(MapToDto);
     }
 
-    public async Task<AccountDto?> GetAccountByIdAsync(Guid id)
+    public async Task<AccountDto?> GetAccountByIdAsync(
+        Guid id,
+        string userId)
     {
-        var account = await _repository.GetByIdAsync(id);
+        var account =
+            await _repository.GetByIdAsync(id, userId);
 
         return account is null
             ? null
@@ -30,25 +35,30 @@ public class AccountService
     }
 
     public async Task<AccountDto> CreateAccountAsync(
-        CreateAccountDto dto)
+        CreateAccountDto dto,
+        string userId)
     {
         var account = new Account
         {
             Id = Guid.NewGuid(),
             Name = dto.Name.Trim(),
-            Balance = dto.Balance
+            Balance = dto.Balance,
+            UserId = userId
         };
 
-        var createdAccount = await _repository.AddAsync(account);
+        var created =
+            await _repository.AddAsync(account);
 
-        return MapToDto(createdAccount);
+        return MapToDto(created);
     }
 
     public async Task<AccountDto?> UpdateAccountAsync(
         Guid id,
-        UpdateAccountDto dto)
+        UpdateAccountDto dto,
+        string userId)
     {
-        var account = await _repository.GetByIdAsync(id);
+        var account =
+            await _repository.GetByIdAsync(id, userId);
 
         if (account is null)
         {
@@ -63,9 +73,12 @@ public class AccountService
         return MapToDto(account);
     }
 
-    public async Task<bool> DeleteAccountAsync(Guid id)
+    public async Task<bool> DeleteAccountAsync(
+        Guid id,
+        string userId)
     {
-        var account = await _repository.GetByIdAsync(id);
+        var account =
+            await _repository.GetByIdAsync(id, userId);
 
         if (account is null)
         {

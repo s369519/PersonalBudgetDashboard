@@ -15,31 +15,31 @@ public class CategoryService
     }
 
 
-    public async Task<IEnumerable<CategoryDto>> GetCategoriesAsync()
-    {
-        var categories = await _repository.GetAllAsync();
+    public async Task<IEnumerable<CategoryDto>> GetCategoriesAsync(string userId)
+{
+    var categories =
+        await _repository.GetAllAsync(userId);
 
-        return categories.Select(x => new CategoryDto
-        {
-            Id = x.Id,
-            Name = x.Name
-        });
-    }
+    return categories.Select(category => new CategoryDto
+    {
+        Id = category.Id,
+        Name = category.Name
+    });
+}
 
 
     public async Task<CategoryDto> CreateCategoryAsync(
-        CreateCategoryDto dto)
+        CreateCategoryDto dto,
+        string userId)
     {
         var category = new Category
         {
             Id = Guid.NewGuid(),
-            Name = dto.Name
+            Name = dto.Name.Trim(),
+            UserId = userId
         };
-
-
-        var created = await _repository.AddAsync(category);
-
-
+        var created =
+            await _repository.AddAsync(category);
         return new CategoryDto
         {
             Id = created.Id,
@@ -49,9 +49,10 @@ public class CategoryService
 
     public async Task<CategoryDto?> UpdateAsync(
         Guid id,
-        UpdateCategoryDto dto)
+        UpdateCategoryDto dto,
+        string userId)
     {
-        var category = await _repository.GetByIdAsync(id);
+        var category = await _repository.GetByIdAsync(id, userId);
         if (category is null)
         {
             return null;
@@ -65,9 +66,9 @@ public class CategoryService
         };
     }
 
-    public async Task<bool> DeleteAsync(Guid id)
+    public async Task<bool> DeleteAsync(Guid id, string userId)
     {
-        var category = await _repository.GetByIdAsync(id);
+        var category = await _repository.GetByIdAsync(id, userId);
         if (category is null)
         {
             return false;
