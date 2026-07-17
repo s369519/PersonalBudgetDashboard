@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { Pencil, Trash2, WalletCards } from "lucide-react";
-
+import { getApiErrorMessage } from "../utils/getApiError";
 import api from "../api/client";
 import AccountForm from "../components/forms/AccountForm";
 import EditAccountForm from "../components/forms/EditAccountForm";
@@ -91,7 +91,10 @@ export default function Accounts() {
             console.error("Could not delete account:", requestError);
 
             setError(
-                "The account could not be deleted. It may have transactions connected to it.",
+                getApiErrorMessage(
+                    requestError,
+                    "The account could not be deleted. It may have transactions connected to it.",
+                ),
             );
         } finally {
             setDeletingId(null);

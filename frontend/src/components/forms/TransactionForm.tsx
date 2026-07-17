@@ -1,5 +1,5 @@
 import { useState } from "react";
-
+import { getApiErrorMessage } from "../../utils/getApiError";
 import type { Account } from "../../types/account";
 import type { Category } from "../../types/category";
 import type { CreateTransaction } from "../../types/transaction";
@@ -66,8 +66,18 @@ export default function TransactionForm({
                 accountId: accounts[0]?.id ?? "",
                 categoryId: categories[0]?.id ?? "",
             });
-        } catch {
-            setError("Could not create the transaction.");
+        } catch (requestError) {
+            console.error(
+                "Could not create transaction:",
+                requestError,
+            );
+
+            setError(
+                getApiErrorMessage(
+                    requestError,
+                    "Could not create the transaction.",
+                ),
+            );
         } finally {
             setIsSubmitting(false);
         }

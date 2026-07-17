@@ -1,5 +1,5 @@
 import { useState } from "react";
-
+import { getApiErrorMessage } from "../../utils/getApiError";
 import type { CreateAccount } from "../../types/account";
 
 type AccountFormProps = {
@@ -36,8 +36,17 @@ export default function AccountForm({
             });
 
             setForm(initialForm);
-        } catch {
-            setError("Could not create the account.");
+        } catch (requestError) {
+            console.error(
+                "Could not create account:",
+                requestError,
+            );
+            setError(
+                getApiErrorMessage(
+                    requestError,
+                    "Could not create the account.",
+                ),
+            );
         } finally {
             setIsSubmitting(false);
         }

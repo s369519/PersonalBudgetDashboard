@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-
+import { getApiErrorMessage } from "../../utils/getApiError";
 import type {
     Account,
     UpdateAccount,
@@ -52,8 +52,17 @@ export default function EditAccountForm({
                 name: form.name.trim(),
                 balance: form.balance,
             });
-        } catch {
-            setError("Could not update the account.");
+        } catch (requestError) {
+            console.error(
+                "Could not update account:",
+                requestError,
+            );
+            setError(
+                getApiErrorMessage(
+                    requestError,
+                    "Could not update the account.",
+                ),
+            );
         } finally {
             setIsSubmitting(false);
         }

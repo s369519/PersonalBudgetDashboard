@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import api from "../api/client";
 import TransactionForm from "../components/forms/TransactionForm";
 import TransactionTable from "../components/tables/TransactionTable";
+import { getApiErrorMessage } from "../utils/getApiError";
 import type { Account } from "../types/account";
 import type { Category } from "../types/category";
 import EditTransactionForm from "../components/forms/EditTransactionForm";
@@ -87,7 +88,12 @@ export default function Transactions() {
             );
         } catch (requestError) {
             console.error("Could not delete transaction:", requestError);
-            setError("The transaction could not be deleted.");
+            setError(
+                getApiErrorMessage(
+                    requestError,
+                    "The transaction could not be deleted.",
+                ),
+            );
         } finally {
             setDeletingId(null);
         }

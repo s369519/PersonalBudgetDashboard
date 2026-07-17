@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { Pencil, Tags, Trash2 } from "lucide-react";
-
+import { getApiErrorMessage } from "../utils/getApiError";
 import api from "../api/client";
 import CategoryForm from "../components/forms/CategoryForm";
 import EditCategoryForm from "../components/forms/EditCategoryForm";
@@ -74,10 +74,13 @@ export default function Categories() {
             }
         } catch (requestError) {
             console.error("Could not delete category:", requestError);
-            
+
             setError(
-                "The category could not be deleted. It may have transactions connected to it.",
-            );
+            getApiErrorMessage(
+                requestError,
+                "The The category could not be deleted. It may have transactions connected to it.",
+            ),
+        );
         } finally {
             setDeletingId(null);
         }

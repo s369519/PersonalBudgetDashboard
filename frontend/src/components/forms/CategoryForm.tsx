@@ -1,5 +1,5 @@
 import { useState } from "react";
-
+import { getApiErrorMessage } from "../../utils/getApiError";
 import type { CreateCategory } from "../../types/category";
 
 type CategoryFormProps = {
@@ -36,8 +36,17 @@ export default function CategoryForm({
             });
 
             setForm(initialForm);
-        } catch {
-            setError("Could not create the category.");
+        } catch (requestError) {
+            console.error(
+                "Could not create category:",
+                requestError,
+            );
+            setError(
+                getApiErrorMessage(
+                    requestError,
+                    "Could not create the category.",
+                ),
+            );
         } finally {
             setIsSubmitting(false);
         }

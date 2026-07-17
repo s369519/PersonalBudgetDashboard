@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-
+import { getApiErrorMessage } from "../../utils/getApiError";
 import type { Account } from "../../types/account";
 import type { Category } from "../../types/category";
 import type {
@@ -89,8 +89,17 @@ export default function EditTransactionForm({
                 description: form.description.trim(),
                 date: new Date(`${form.date}T00:00:00Z`).toISOString(),
             });
-        } catch {
-            setError("Could not update the transaction.");
+        } catch (requestError) {
+            console.error(
+                "Could not update transaction:",
+                requestError,
+            );
+            setError(
+                getApiErrorMessage(
+                    requestError,
+                    "Could not update the transaction.",
+                ),
+            );
         } finally {
             setIsSubmitting(false);
         }

@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-
+import { getApiErrorMessage } from "../../utils/getApiError";
 import type {
     Category,
     UpdateCategory,
@@ -46,9 +46,18 @@ export default function EditCategoryForm({
             await onSubmit(category.id, {
                 name: trimmedName,
             });
-        } catch {
-            setError("Could not update the category.");
-        } finally {
+        } catch (requestError) {
+            console.error(
+                "Could not update category:",
+                requestError,
+            );
+            setError(
+                getApiErrorMessage(
+                    requestError,
+                    "Could not update the category.",
+                ),
+            );
+        }finally {
             setIsSubmitting(false);
         }
     }
