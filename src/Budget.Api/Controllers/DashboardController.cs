@@ -18,23 +18,30 @@ public class DashboardController : ControllerBase
     }
 
     [HttpGet("summary")]
-    public async Task<IActionResult> Summary()
+    public async Task<IActionResult> Summary(
+        [FromQuery] DateOnly? month,
+        [FromQuery] int months = 1)
     {
         var userId = User.GetUserId();
 
         var result =
-            await _service.GetSummaryAsync(userId);
+            await _service.GetSummaryAsync(userId, month, months);
 
         return Ok(result);
     }
 
     [HttpGet("categories")]
-    public async Task<IActionResult> Categories()
+    public async Task<IActionResult> Categories(
+        [FromQuery] DateOnly? month,
+        [FromQuery] int months = 1)
     {
         var userId = User.GetUserId();
 
         var result =
-            await _service.GetCategorySpendingAsync(userId);
+            await _service.GetCategorySpendingAsync(
+                userId,
+                month,
+                months);
 
         return Ok(result);
     }
@@ -47,5 +54,12 @@ public class DashboardController : ControllerBase
             months);
 
         return Ok(result);
+    }
+
+    [HttpGet("months")]
+    public async Task<IActionResult> Months()
+    {
+        return Ok(await _service.GetAvailableMonthsAsync(
+            User.GetUserId()));
     }
 }

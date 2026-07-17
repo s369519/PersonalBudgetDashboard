@@ -17,10 +17,9 @@ function formatCurrency(amount: number) {
     }).format(amount);
 }
 
-function formatDate(date: string) {
+function formatMonth(date: string) {
     return new Intl.DateTimeFormat("nb-NO", {
-        day: "2-digit",
-        month: "short",
+        month: "long",
         year: "numeric",
     }).format(new Date(date));
 }
@@ -48,7 +47,7 @@ export default function TransactionTable({
                     <tr className="border-b border-slate-200 text-sm text-slate-500">
                         <th className="pb-3 font-medium">Description</th>
                         <th className="pb-3 font-medium">Category</th>
-                        <th className="pb-3 font-medium">Date</th>
+                        <th className="pb-3 font-medium">Month</th>
                         <th className="pb-3 text-right font-medium">
                             Amount
                         </th>
@@ -83,7 +82,7 @@ export default function TransactionTable({
                             </td>
 
                             <td className="py-4 text-slate-600">
-                                {formatDate(transaction.date)}
+                                {formatMonth(transaction.date)}
                             </td>
 
                             <td

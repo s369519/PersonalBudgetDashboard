@@ -15,9 +15,14 @@ public class DashboardService
     }
 
 
-    public async Task<DashboardSummaryDto> GetSummaryAsync(string userId)
+    public async Task<DashboardSummaryDto> GetSummaryAsync(
+        string userId,
+        DateOnly? month = null,
+        int numberOfMonths = 1)
     {
-        var (from, to) = GetCurrentMonthRange();
+        numberOfMonths = NormalizePeriod(numberOfMonths);
+        var (selectedMonthFrom, to) = GetMonthRange(month);
+        var from = selectedMonthFrom.AddMonths(-(numberOfMonths - 1));
         var transactions =
             await _repository.GetTransactionsAsync(userId, from, to);
 
@@ -59,9 +64,15 @@ public class DashboardService
     }
 
 
-    public async Task<IEnumerable<CategorySpendingDto>> GetCategorySpendingAsync(string userId)
+    public async Task<IEnumerable<CategorySpendingDto>> GetCategorySpendingAsync(
+        string userId,
+        DateOnly? month = null,
+        int numberOfMonths = 1)
     {
-        var (from, to) = GetCurrentMonthRange();
+        numberOfMonths = NormalizePeriod(numberOfMonths);
+
+        var (selectedMonthFrom, to) = GetMonthRange(month);
+        var from = selectedMonthFrom.AddMonths(-(numberOfMonths - 1));
         var transactions =
             await _repository.GetTransactionsAsync(userId, from, to);
 
@@ -126,11 +137,19 @@ public class DashboardService
             });
     }
 
-    private static (DateTime From, DateTime To) GetCurrentMonthRange()
+    public Task<IEnumerable<DateOnly>> GetAvailableMonthsAsync(
+        string userId)
     {
+        return _repository.GetAvailableMonthsAsync(userId);
+    }
+
+    private static (DateTime From, DateTime To) GetMonthRange(
+        DateOnly? selectedMonth)
+    {
+        var month = selectedMonth ?? DateOnly.FromDateTime(DateTime.UtcNow);
         var from = new DateTime(
-            DateTime.UtcNow.Year,
-            DateTime.UtcNow.Month,
+            month.Year,
+            month.Month,
             1,
             0,
             0,
@@ -138,6 +157,13 @@ public class DashboardService
             DateTimeKind.Utc);
 
         return (from, from.AddMonths(1));
+    }
+
+    private static int NormalizePeriod(int numberOfMonths)
+    {
+        return numberOfMonths is 1 or 3 or 6 or 12
+            ? numberOfMonths
+            : 1;
     }
 
     

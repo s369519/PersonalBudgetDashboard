@@ -6,6 +6,7 @@ import {
     WalletCards,
     TableProperties,
     TrendingUp,
+    FileUp,
 } from "lucide-react";
 
 import {
@@ -40,6 +41,11 @@ const navigationItems = [
         name: "Budgets",
         path: "/budgets",
         icon: TableProperties,
+    },
+    {
+        name: "CSV Import",
+        path: "/import",
+        icon: FileUp,
     },
     {
         name: "Categories",

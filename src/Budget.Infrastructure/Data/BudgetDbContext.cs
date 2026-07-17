@@ -32,6 +32,9 @@ public class BudgetDbContext
     public DbSet<BudgetItem> BudgetItems =>
         Set<BudgetItem>();
 
+    public DbSet<BankImportBatch> BankImportBatches =>
+        Set<BankImportBatch>();
+
     protected override void OnModelCreating(
         ModelBuilder modelBuilder)
     {
@@ -101,6 +104,32 @@ public class BudgetDbContext
             .WithMany()
             .HasForeignKey(item => item.CategoryId)
             .OnDelete(DeleteBehavior.SetNull);
+
+        modelBuilder.Entity<BankImportBatch>()
+            .Property(batch => batch.FileHash)
+            .HasMaxLength(64)
+            .IsRequired();
+
+        modelBuilder.Entity<BankImportBatch>()
+            .HasIndex(batch => new
+            {
+                batch.UserId,
+                batch.AccountId,
+                batch.FileHash
+            })
+            .IsUnique();
+
+        modelBuilder.Entity<BankImportBatch>()
+            .HasOne<Account>()
+            .WithMany()
+            .HasForeignKey(batch => batch.AccountId)
+            .OnDelete(DeleteBehavior.Cascade);
+
+        modelBuilder.Entity<BankImportBatch>()
+            .HasOne<ApplicationUser>()
+            .WithMany()
+            .HasForeignKey(batch => batch.UserId)
+            .OnDelete(DeleteBehavior.Cascade);
 
         modelBuilder.Entity<Category>()
             .Property(category => category.Name)

@@ -17,6 +17,7 @@ import Register from "./pages/Register";
 import Transactions from "./pages/Transactions";
 import Budgets from "./pages/Budgets";
 import Trends from "./pages/Trends";
+import ImportTransactions from "./pages/ImportTransactions";
 
 export default function App() {
     return (
@@ -63,6 +64,11 @@ export default function App() {
                             <Route
                                 path="/trends"
                                 element={<Trends />}
+                            />
+
+                            <Route
+                                path="/import"
+                                element={<ImportTransactions />}
                             />
                         </Route>
                     </Route>

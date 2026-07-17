@@ -13,7 +13,7 @@ type TransactionFormProps = {
 const initialForm: CreateTransaction = {
     description: "",
     amount: 0,
-    date: new Date().toISOString().split("T")[0],
+    date: new Date().toISOString().slice(0, 7),
     accountId: "",
     categoryId: "",
 };
@@ -57,12 +57,12 @@ export default function TransactionForm({
             await onSubmit({
                 ...form,
                 description: form.description.trim(),
-                date: new Date(`${form.date}T00:00:00Z`).toISOString(),
+                date: new Date(`${form.date}-01T00:00:00Z`).toISOString(),
             });
 
             setForm({
                 ...initialForm,
-                date: new Date().toISOString().split("T")[0],
+                date: new Date().toISOString().slice(0, 7),
                 accountId: accounts[0]?.id ?? "",
                 categoryId: categories[0]?.id ?? "",
             });
@@ -157,12 +157,12 @@ export default function TransactionForm({
                         htmlFor="date"
                         className="mb-2 block text-sm font-medium text-slate-700"
                     >
-                        Date
+                        Month
                     </label>
 
                     <input
                         id="date"
-                        type="date"
+                        type="month"
                         value={form.date}
                         onChange={(event) =>
                             setForm({

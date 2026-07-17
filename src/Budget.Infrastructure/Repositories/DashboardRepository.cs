@@ -60,4 +60,33 @@ public class DashboardRepository : IDashboardRepository
                 (account.Transactions.Sum(transaction =>
                     (decimal?)transaction.Amount) ?? 0));
     }
+
+    public async Task<IEnumerable<DateOnly>> GetAvailableMonthsAsync(
+        string userId)
+    {
+        var householdId = await _context.Users
+            .Where(user => user.Id == userId)
+            .Select(user => user.HouseholdId)
+            .SingleOrDefaultAsync();
+        var months = await _context.Transactions
+            .Where(transaction =>
+                transaction.Account.UserId == userId ||
+                transaction.Account.Visibility == AccountVisibility.Shared &&
+                householdId != null &&
+                _context.Users.Any(owner =>
+                    owner.Id == transaction.Account.UserId &&
+                    owner.HouseholdId == householdId))
+            .Select(transaction => new
+            {
+                transaction.Date.Year,
+                transaction.Date.Month
+            })
+            .Distinct()
+            .OrderByDescending(value => value.Year)
+            .ThenByDescending(value => value.Month)
+            .ToListAsync();
+
+        return months.Select(value =>
+            new DateOnly(value.Year, value.Month, 1));
+    }
 }

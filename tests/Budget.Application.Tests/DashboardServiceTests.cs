@@ -58,6 +58,25 @@ public class DashboardServiceTests
         Assert.Equal(7_000, trends[1].Net);
     }
 
+    [Fact]
+    public async Task CategorySpendingUsesSelectedRollingPeriod()
+    {
+        var repository = new DashboardRepositoryStub([]);
+        var service = new DashboardService(repository);
+
+        await service.GetCategorySpendingAsync(
+            "user-1",
+            new DateOnly(2026, 6, 1),
+            3);
+
+        Assert.Equal(
+            new DateTime(2026, 4, 1, 0, 0, 0, DateTimeKind.Utc),
+            repository.RequestedFrom);
+        Assert.Equal(
+            new DateTime(2026, 7, 1, 0, 0, 0, DateTimeKind.Utc),
+            repository.RequestedTo);
+    }
+
     private sealed class DashboardRepositoryStub(
         IEnumerable<Transaction> transactions)
         : IDashboardRepository
@@ -77,5 +96,9 @@ public class DashboardServiceTests
 
         public Task<decimal> GetTotalBalanceAsync(string userId) =>
             Task.FromResult(0m);
+
+        public Task<IEnumerable<DateOnly>> GetAvailableMonthsAsync(
+            string userId) =>
+            Task.FromResult<IEnumerable<DateOnly>>([]);
     }
 }

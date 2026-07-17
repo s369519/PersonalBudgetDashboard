@@ -36,7 +36,7 @@ export default function EditTransactionForm({
     const [form, setForm] = useState<UpdateTransaction>({
         description: transaction.description,
         amount: transaction.amount,
-        date: transaction.date.split("T")[0],
+        date: transaction.date.slice(0, 7),
         accountId: selectedAccount?.id ?? "",
         categoryId: selectedCategory?.id ?? "",
     });
@@ -56,7 +56,7 @@ export default function EditTransactionForm({
         setForm({
             description: transaction.description,
             amount: transaction.amount,
-            date: transaction.date.split("T")[0],
+            date: transaction.date.slice(0, 7),
             accountId: account?.id ?? "",
             categoryId: category?.id ?? "",
         });
@@ -87,7 +87,7 @@ export default function EditTransactionForm({
             await onSubmit(transaction.id, {
                 ...form,
                 description: form.description.trim(),
-                date: new Date(`${form.date}T00:00:00Z`).toISOString(),
+                date: new Date(`${form.date}-01T00:00:00Z`).toISOString(),
             });
         } catch (requestError) {
             console.error(
@@ -166,11 +166,11 @@ export default function EditTransactionForm({
 
                 <div>
                     <label className="mb-2 block text-sm font-medium text-slate-700">
-                        Date
+                        Month
                     </label>
 
                     <input
-                        type="date"
+                        type="month"
                         value={form.date}
                         onChange={(event) =>
                             setForm({

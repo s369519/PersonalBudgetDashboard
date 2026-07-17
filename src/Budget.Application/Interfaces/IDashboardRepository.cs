@@ -11,4 +11,7 @@ public interface IDashboardRepository
 
     Task<decimal> GetTotalBalanceAsync(
         string userId);
+
+    Task<IEnumerable<DateOnly>> GetAvailableMonthsAsync(
+        string userId);
 }

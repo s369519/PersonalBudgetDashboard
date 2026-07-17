@@ -306,6 +306,12 @@ export default function Budgets() {
                             : "Creating a new budget sheet."}
                     </div>
 
+                    {draft.rows.some((row) => !row.categoryId) && (
+                        <div className="border-b border-amber-200 bg-amber-50 px-5 py-3 text-sm text-amber-800">
+                            Actual amounts require a category. Select the matching CSV category for each row and save the budget. The budget month must also match the CSV month.
+                        </div>
+                    )}
+
                     <div className="grid gap-4 border-b border-slate-200 p-5 md:grid-cols-[1fr_180px_170px]">
                         <input
                             value={draft.name}

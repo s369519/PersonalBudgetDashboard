@@ -4,62 +4,101 @@ import api from "../api/client";
 
 import SummaryCard from "../components/cards/SummaryCard";
 import SpendingPieChart from "../components/charts/SpendingPieChart";
-import TransactionTable from "../components/tables/TransactionTable";
 
 import type {
     CategorySpending,
     DashboardSummary,
 } from "../types/dashboard";
 
-import type { Transaction } from "../types/transaction";
-
 export default function Dashboard() {
+    const [month, setMonth] = useState(new Date().toISOString().slice(0, 7));
+    const [categoryMonths, setCategoryMonths] = useState(1);
+    const [chartMode, setChartMode] = useState<"pie" | "bar">("pie");
+    const [availableMonths, setAvailableMonths] = useState<string[]>([]);
     const [summary, setSummary] = useState<DashboardSummary | null>(null);
     const [categories, setCategories] = useState<CategorySpending[]>([]);
-    const [transactions, setTransactions] = useState<Transaction[]>([]);
 
     const [isLoading, setIsLoading] = useState(true);
+    const [isCategoriesLoading, setIsCategoriesLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
 
     useEffect(() => {
+        async function loadMonths() {
+            try {
+                const response = await api.get<string[]>("/Dashboard/months");
+                const values = response.data.map((value) => value.slice(0, 7));
+                setAvailableMonths(values);
+                if (values.length > 0) {
+                    setMonth(values[0]);
+                }
+            } catch (requestError) {
+                console.error("Could not load available months:", requestError);
+            }
+        }
+
+        loadMonths();
+    }, []);
+
+    useEffect(() => {
+        let cancelled = false;
+
         async function loadDashboard() {
             try {
                 setIsLoading(true);
                 setError(null);
 
-                const [
-                    summaryResponse,
-                    categoriesResponse,
-                    transactionsResponse,
-                ] = await Promise.all([
-                    api.get<DashboardSummary>("/Dashboard/summary"),
-                    api.get<CategorySpending[]>("/Dashboard/categories"),
-                    api.get<Transaction[]>("/Transactions"),
-                ]);
-
-                setSummary(summaryResponse.data);
-                setCategories(categoriesResponse.data);
-
-                const sortedTransactions = [...transactionsResponse.data].sort(
-                    (a, b) =>
-                        new Date(b.date).getTime() -
-                        new Date(a.date).getTime(),
+                const summaryResponse = await api.get<DashboardSummary>(
+                    `/Dashboard/summary?month=${month}-01&months=${categoryMonths}`,
                 );
 
-                setTransactions(sortedTransactions);
+                if (!cancelled) {
+                    setSummary(summaryResponse.data);
+                }
+
             } catch (requestError) {
                 console.error("Could not load dashboard:", requestError);
 
-                setError(
-                    "Could not load the dashboard. Make sure the backend is running.",
-                );
+                if (!cancelled) {
+                    setError(
+                        "Could not load the dashboard. Make sure the backend is running.",
+                    );
+                }
             } finally {
-                setIsLoading(false);
+                if (!cancelled) setIsLoading(false);
             }
         }
 
         loadDashboard();
-    }, []);
+
+        return () => {
+            cancelled = true;
+        };
+    }, [month, categoryMonths]);
+
+    useEffect(() => {
+        let cancelled = false;
+
+        async function loadCategories() {
+            try {
+                setIsCategoriesLoading(true);
+                const response = await api.get<CategorySpending[]>(
+                    `/Dashboard/categories?month=${month}-01&months=${categoryMonths}`,
+                );
+                if (!cancelled) setCategories(response.data);
+            } catch (requestError) {
+                console.error("Could not load category spending:", requestError);
+                if (!cancelled) setCategories([]);
+            } finally {
+                if (!cancelled) setIsCategoriesLoading(false);
+            }
+        }
+
+        loadCategories();
+
+        return () => {
+            cancelled = true;
+        };
+    }, [month, categoryMonths]);
 
     if (isLoading) {
         return (
@@ -91,14 +130,34 @@ export default function Dashboard() {
 
     return (
         <div className="mx-auto max-w-7xl">
-            <header className="mb-8">
-                <h1 className="text-3xl font-bold text-slate-900 md:text-4xl">
-                    Personal Finance Dashboard
-                </h1>
+            <header className="mb-8 flex items-start justify-between gap-4">
+                <div>
+                    <h1 className="text-3xl font-bold text-slate-900 md:text-4xl">
+                        Personal Finance Dashboard
+                    </h1>
 
-                <p className="mt-2 text-slate-500">
-                    Overview of your finances and recent activity.
-                </p>
+                    <p className="mt-2 text-slate-500">
+                        Monthly overview of your income, expenses and categories.
+                    </p>
+                </div>
+                <select
+                    value={month}
+                    onChange={(event) => setMonth(event.target.value)}
+                    aria-label="Dashboard month"
+                    className="rounded-lg border border-slate-300 bg-white px-4 py-2.5"
+                >
+                    {(availableMonths.length > 0
+                        ? availableMonths
+                        : [month]
+                    ).map((value) => (
+                        <option key={value} value={value}>
+                            {new Intl.DateTimeFormat("nb-NO", {
+                                month: "long",
+                                year: "numeric",
+                            }).format(new Date(`${value}-01T00:00:00`))}
+                        </option>
+                    ))}
+                </select>
             </header>
 
             <section className="grid gap-6 md:grid-cols-3">
@@ -108,53 +167,78 @@ export default function Dashboard() {
                 />
 
                 <SummaryCard
-                    title="Income"
+                    title={`Income · ${categoryMonths}M`}
                     value={`${summary.monthlyIncome.toLocaleString("nb-NO")} kr`}
                 />
 
                 <SummaryCard
-                    title="Expenses"
+                    title={`Expenses · ${categoryMonths}M`}
                     value={`${summary.monthlyExpenses.toLocaleString("nb-NO")} kr`}
                 />
             </section>
 
-            <div className="mt-10 grid gap-6 xl:grid-cols-2">
+            <div className="mt-10">
                 <section className="rounded-xl border border-slate-200 bg-white p-6 shadow-sm">
-                    <div>
+                    <div className="flex flex-wrap items-start justify-between gap-4">
+                        <div>
                         <h2 className="text-xl font-semibold text-slate-800">
                             Spending by Category
                         </h2>
 
                         <p className="mt-1 text-sm text-slate-500">
-                            Distribution of your expenses.
+                            Distribution through the selected month.
                         </p>
+                        </div>
+
+                        <div className="flex flex-wrap justify-end gap-2">
+                        <div className="flex rounded-lg bg-slate-100 p-1">
+                            {[1, 3, 6, 12].map((period) => (
+                                <button
+                                    key={period}
+                                    type="button"
+                                    onClick={() => setCategoryMonths(period)}
+                                    className={`rounded-md px-3 py-1.5 text-sm font-medium transition ${
+                                        categoryMonths === period
+                                            ? "bg-white text-slate-900 shadow-sm"
+                                            : "text-slate-500 hover:text-slate-800"
+                                    }`}
+                                >
+                                    {period}M
+                                </button>
+                            ))}
+                        </div>
+                        <div className="flex rounded-lg bg-slate-100 p-1">
+                            {(["pie", "bar"] as const).map((mode) => (
+                                <button
+                                    key={mode}
+                                    type="button"
+                                    onClick={() => setChartMode(mode)}
+                                    className={`rounded-md px-3 py-1.5 text-sm font-medium capitalize transition ${
+                                        chartMode === mode
+                                            ? "bg-white text-slate-900 shadow-sm"
+                                            : "text-slate-500 hover:text-slate-800"
+                                    }`}
+                                >
+                                    {mode === "pie" ? "Pie" : "Bars"}
+                                </button>
+                            ))}
+                        </div>
+                        </div>
                     </div>
 
-                    <div className="mt-4">
-                        {categories.length > 0 ? (
-                            <SpendingPieChart data={categories} />
+                    <div className="mt-6">
+                        {isCategoriesLoading ? (
+                            <div className="flex h-72 items-center justify-center text-slate-500">
+                                Loading category spending...
+                            </div>
+                        ) : categories.length > 0 ? (
+                            <SpendingPieChart data={categories} mode={chartMode} />
                         ) : (
                             <div className="flex h-72 items-center justify-center text-slate-500">
                                 No category spending available.
                             </div>
                         )}
                     </div>
-                </section>
-
-                <section className="rounded-xl border border-slate-200 bg-white p-6 shadow-sm">
-                    <div className="mb-6">
-                        <h2 className="text-xl font-semibold text-slate-800">
-                            Recent Transactions
-                        </h2>
-
-                        <p className="mt-1 text-sm text-slate-500">
-                            Your latest account activity.
-                        </p>
-                    </div>
-
-                    <TransactionTable
-                        transactions={transactions.slice(0, 5)}
-                    />
                 </section>
             </div>
         </div>

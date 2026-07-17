@@ -93,6 +93,8 @@ builder.Services.AddScoped<
 builder.Services.AddScoped<DashboardService>();
 builder.Services.AddScoped<IBudgetRepository, BudgetRepository>();
 builder.Services.AddScoped<BudgetService>();
+builder.Services.AddScoped<IBankImportRepository, BankImportRepository>();
+builder.Services.AddScoped<BankCsvImportService>();
 builder.Services.AddCors(options =>
 {
     options.AddPolicy("React",
