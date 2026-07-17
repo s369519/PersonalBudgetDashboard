@@ -6,3 +6,11 @@ export type Transaction = {
     accountName: string;
     categoryName: string;
 };
+
+export type CreateTransaction = {
+    description: string;
+    amount: number;
+    date: string;
+    accountId: string;
+    categoryId: string;
+};
