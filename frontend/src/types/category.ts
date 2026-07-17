@@ -6,3 +6,5 @@ export type Category = {
 export type CreateCategory = {
     name: string;
 };
+
+export type UpdateCategory = CreateCategory;

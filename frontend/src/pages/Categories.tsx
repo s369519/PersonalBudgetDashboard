@@ -1,12 +1,13 @@
 import { useEffect, useState } from "react";
-import { Tags, Trash2 } from "lucide-react";
+import { Pencil, Tags, Trash2 } from "lucide-react";
 
 import api from "../api/client";
 import CategoryForm from "../components/forms/CategoryForm";
-
+import EditCategoryForm from "../components/forms/EditCategoryForm";
 import type {
     Category,
     CreateCategory,
+    UpdateCategory,
 } from "../types/category";
 
 export default function Categories() {
@@ -14,6 +15,7 @@ export default function Categories() {
     const [isLoading, setIsLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
     const [deletingId, setDeletingId] = useState<string | null>(null);
+    const [editingCategory, setEditingCategory] = useState<Category | null>(null);
 
     async function loadCategories() {
         try {
@@ -59,24 +61,36 @@ export default function Categories() {
         try {
             setDeletingId(category.id);
             setError(null);
-
             await api.delete(`/Categories/${category.id}`);
-
             setCategories((currentCategories) =>
                 currentCategories.filter(
                     (currentCategory) =>
                         currentCategory.id !== category.id,
                 ),
             );
+
+            if (editingCategory?.id === category.id) {
+                setEditingCategory(null);
+            }
         } catch (requestError) {
             console.error("Could not delete category:", requestError);
-
+            
             setError(
                 "The category could not be deleted. It may have transactions connected to it.",
             );
         } finally {
             setDeletingId(null);
         }
+    }
+
+
+    async function handleUpdateCategory(
+        id: string,
+        category: UpdateCategory,
+    ) {
+        await api.put(`/Categories/${id}`, category);
+        setEditingCategory(null);
+        await loadCategories();
     }
 
     if (isLoading) {
@@ -112,7 +126,15 @@ export default function Categories() {
             )}
 
             <div className="grid gap-6 xl:grid-cols-[380px_1fr]">
-                <CategoryForm onSubmit={handleCreateCategory} />
+                {editingCategory ? (
+                    <EditCategoryForm
+                        category={editingCategory}
+                        onSubmit={handleUpdateCategory}
+                        onCancel={() => setEditingCategory(null)}
+                    />
+                ) : (
+                    <CategoryForm onSubmit={handleCreateCategory} />
+                )}
 
                 <section className="rounded-xl border border-slate-200 bg-white p-6 shadow-sm">
                     <div className="mb-6">
@@ -160,19 +182,26 @@ export default function Categories() {
                                         </p>
                                     </div>
 
-                                    <button
-                                        type="button"
-                                        onClick={() =>
-                                            handleDeleteCategory(category)
-                                        }
-                                        disabled={
-                                            deletingId === category.id
-                                        }
-                                        aria-label={`Delete ${category.name}`}
-                                        className="rounded-lg p-2 text-slate-400 transition hover:bg-red-50 hover:text-red-600 disabled:cursor-not-allowed disabled:opacity-50"
-                                    >
-                                        <Trash2 size={18} />
-                                    </button>
+                                    <div className="flex gap-1">
+                                        <button
+                                            type="button"
+                                            onClick={() => setEditingCategory(category)}
+                                            aria-label={`Edit ${category.name}`}
+                                            className="rounded-lg p-2 text-slate-400 transition hover:bg-blue-50 hover:text-blue-600"
+                                        >
+                                            <Pencil size={18} />
+                                        </button>
+
+                                        <button
+                                            type="button"
+                                            onClick={() => handleDeleteCategory(category)}
+                                            disabled={deletingId === category.id}
+                                            aria-label={`Delete ${category.name}`}
+                                            className="rounded-lg p-2 text-slate-400 transition hover:bg-red-50 hover:text-red-600 disabled:cursor-not-allowed disabled:opacity-50"
+                                        >
+                                            <Trash2 size={18} />
+                                        </button>
+                                    </div>
                                 </article>
                             ))}
                         </div>

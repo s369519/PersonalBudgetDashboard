@@ -36,6 +36,19 @@ public class CategoriesController : ControllerBase
         return Ok(category);
     }
 
+    [HttpPut("{id:guid}")]
+    public async Task<IActionResult> Update(
+        Guid id,
+        UpdateCategoryDto dto)
+    {
+        var category = await _service.UpdateAsync(id, dto);
+        if (category is null)
+        {
+            return NotFound();
+        }
+        return Ok(category);
+    }
+
     [HttpDelete("{id:guid}")]
     public async Task<IActionResult> Delete(Guid id)
     {

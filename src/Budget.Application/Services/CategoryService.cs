@@ -47,6 +47,24 @@ public class CategoryService
         };
     }
 
+    public async Task<CategoryDto?> UpdateAsync(
+        Guid id,
+        UpdateCategoryDto dto)
+    {
+        var category = await _repository.GetByIdAsync(id);
+        if (category is null)
+        {
+            return null;
+        }
+        category.Name = dto.Name.Trim();
+        await _repository.UpdateAsync(category);
+        return new CategoryDto
+        {
+            Id = category.Id,
+            Name = category.Name
+        };
+    }
+
     public async Task<bool> DeleteAsync(Guid id)
     {
         var category = await _repository.GetByIdAsync(id);
