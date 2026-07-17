@@ -10,5 +10,7 @@ public interface ITransactionRepository
 
     Task<Transaction> AddAsync(Transaction transaction);
 
+    Task UpdateAsync(Transaction transaction);
+
     Task DeleteAsync(Transaction transaction);
 }

@@ -14,3 +14,5 @@ export type CreateTransaction = {
     accountId: string;
     categoryId: string;
 };
+
+export type UpdateTransaction = CreateTransaction;

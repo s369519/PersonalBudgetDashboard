@@ -1,24 +1,24 @@
 import { useEffect, useState } from "react";
-
 import api from "../api/client";
-
 import TransactionForm from "../components/forms/TransactionForm";
 import TransactionTable from "../components/tables/TransactionTable";
-
 import type { Account } from "../types/account";
 import type { Category } from "../types/category";
+import EditTransactionForm from "../components/forms/EditTransactionForm";
 import type {
     CreateTransaction,
     Transaction,
+    UpdateTransaction,
 } from "../types/transaction";
 
 export default function Transactions() {
     const [transactions, setTransactions] = useState<Transaction[]>([]);
     const [accounts, setAccounts] = useState<Account[]>([]);
     const [categories, setCategories] = useState<Category[]>([]);
-
     const [isLoading, setIsLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
+    const [deletingId, setDeletingId] = useState<string | null>(null);
+    const [editingTransaction, setEditingTransaction] = useState<Transaction | null>(null);
 
     async function loadData() {
         try {
@@ -66,6 +66,44 @@ export default function Transactions() {
         await loadData();
     }
 
+    async function handleDeleteTransaction(transaction: Transaction) {
+        const shouldDelete = window.confirm(
+            `Delete the transaction "${transaction.description}"?`,
+        );
+
+        if (!shouldDelete) {
+            return;
+        }
+
+        try {
+            setDeletingId(transaction.id);
+            setError(null);
+            await api.delete(`/Transactions/${transaction.id}`);
+            setTransactions((currentTransactions) =>
+                currentTransactions.filter(
+                    (currentTransaction) =>
+                        currentTransaction.id !== transaction.id,
+                ),
+            );
+        } catch (requestError) {
+            console.error("Could not delete transaction:", requestError);
+            setError("The transaction could not be deleted.");
+        } finally {
+            setDeletingId(null);
+        }
+    }
+
+    async function handleUpdateTransaction(
+        id: string,
+        transaction: UpdateTransaction,
+    ) {
+        await api.put(`/Transactions/${id}`, transaction);
+
+        setEditingTransaction(null);
+
+        await loadData();
+    }
+
     if (isLoading) {
         return (
             <div className="flex min-h-[60vh] items-center justify-center">
@@ -107,11 +145,21 @@ export default function Transactions() {
             </header>
 
             <div className="grid gap-6 xl:grid-cols-[380px_1fr]">
+            {editingTransaction ? (
+                <EditTransactionForm
+                    transaction={editingTransaction}
+                    accounts={accounts}
+                    categories={categories}
+                    onSubmit={handleUpdateTransaction}
+                    onCancel={() => setEditingTransaction(null)}
+                />
+            ) : (
                 <TransactionForm
                     accounts={accounts}
                     categories={categories}
                     onSubmit={handleCreateTransaction}
                 />
+            )}
 
                 <section className="rounded-xl border border-slate-200 bg-white p-6 shadow-sm">
                     <div className="mb-6">
@@ -125,7 +173,12 @@ export default function Transactions() {
                         </p>
                     </div>
 
-                    <TransactionTable transactions={transactions} />
+                    <TransactionTable
+                        transactions={transactions}
+                        onEdit={setEditingTransaction}
+                        onDelete={handleDeleteTransaction}
+                        deletingId={deletingId}
+                    />
                 </section>
             </div>
         </div>

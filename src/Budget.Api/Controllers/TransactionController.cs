@@ -38,4 +38,31 @@ public class TransactionsController : ControllerBase
 
         return Ok(transaction);
     }
+
+    [HttpDelete("{id:guid}")]
+    public async Task<IActionResult> Delete(Guid id)
+    {
+        var deleted = await _service.DeleteTransactionAsync(id);
+        if (!deleted)
+        {
+            return NotFound();
+        }
+        return NoContent();
+    }
+
+    [HttpPut("{id:guid}")]
+    public async Task<IActionResult> Update(
+        Guid id,
+        UpdateTransactionDto dto)
+    {
+        var transaction =
+            await _service.UpdateTransactionAsync(id, dto);
+
+        if (transaction is null)
+        {
+            return NotFound();
+        }
+
+        return Ok(transaction);
+    }
 }

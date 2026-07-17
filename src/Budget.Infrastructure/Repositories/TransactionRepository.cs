@@ -9,45 +9,45 @@ public class TransactionRepository : ITransactionRepository
 {
     private readonly BudgetDbContext _context;
 
-
     public TransactionRepository(BudgetDbContext context)
     {
         _context = context;
     }
 
-
     public async Task<IEnumerable<Transaction>> GetAllAsync()
     {
         return await _context.Transactions
-            .Include(x => x.Account)
-            .Include(x => x.Category)
+            .Include(transaction => transaction.Account)
+            .Include(transaction => transaction.Category)
+            .OrderByDescending(transaction => transaction.Date)
             .ToListAsync();
     }
-
 
     public async Task<Transaction?> GetByIdAsync(Guid id)
     {
         return await _context.Transactions
-            .Include(x => x.Account)
-            .Include(x => x.Category)
-            .FirstOrDefaultAsync(x => x.Id == id);
+            .Include(transaction => transaction.Account)
+            .Include(transaction => transaction.Category)
+            .FirstOrDefaultAsync(transaction => transaction.Id == id);
     }
-
 
     public async Task<Transaction> AddAsync(Transaction transaction)
     {
-        _context.Transactions.Add(transaction);
-
+        await _context.Transactions.AddAsync(transaction);
         await _context.SaveChangesAsync();
 
         return transaction;
     }
 
+    public async Task UpdateAsync(Transaction transaction)
+    {
+        _context.Transactions.Update(transaction);
+        await _context.SaveChangesAsync();
+    }
 
     public async Task DeleteAsync(Transaction transaction)
     {
         _context.Transactions.Remove(transaction);
-
         await _context.SaveChangesAsync();
     }
 }
