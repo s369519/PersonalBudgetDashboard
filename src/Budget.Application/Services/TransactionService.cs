@@ -46,7 +46,9 @@ public class TransactionService
 
             Amount = dto.Amount,
 
-            Date = dto.Date,
+            Date = DateTime.SpecifyKind(
+                dto.Date,
+                DateTimeKind.Utc),
 
             AccountId = dto.AccountId,
 

@@ -38,6 +38,20 @@ builder.Services.AddScoped<
 
 builder.Services.AddScoped<DashboardService>();
 
+builder.Services.AddCors(options =>
+
+{
+
+    options.AddPolicy("React",
+        policy =>
+        {
+            policy
+                .WithOrigins("http://localhost:5173")
+                .AllowAnyHeader()
+                .AllowAnyMethod();
+        });
+});
+
 
 // Add services to the container.
 // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
@@ -55,7 +69,10 @@ if (app.Environment.IsDevelopment())
 
 app.UseHttpsRedirection();
 
+app.UseCors("React");
+
+app.UseAuthorization();
+
 app.MapControllers();
 
 app.Run();
-
