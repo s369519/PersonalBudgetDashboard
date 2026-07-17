@@ -5,7 +5,9 @@ namespace Budget.Application.Interfaces;
 public interface IDashboardRepository
 {
     Task<IEnumerable<Transaction>> GetTransactionsAsync(
-        string userId);
+        string userId,
+        DateTime from,
+        DateTime to);
 
     Task<decimal> GetTotalBalanceAsync(
         string userId);

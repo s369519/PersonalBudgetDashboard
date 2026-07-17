@@ -21,7 +21,8 @@ export default function EditAccountForm({
 }: EditAccountFormProps) {
     const [form, setForm] = useState<UpdateAccount>({
         name: account.name,
-        balance: account.balance,
+        startingBalance: account.startingBalance,
+        visibility: account.visibility,
     });
 
     const [isSubmitting, setIsSubmitting] = useState(false);
@@ -30,7 +31,8 @@ export default function EditAccountForm({
     useEffect(() => {
         setForm({
             name: account.name,
-            balance: account.balance,
+            startingBalance: account.startingBalance,
+            visibility: account.visibility,
         });
     }, [account]);
 
@@ -50,7 +52,8 @@ export default function EditAccountForm({
 
             await onSubmit(account.id, {
                 name: form.name.trim(),
-                balance: form.balance,
+                startingBalance: form.startingBalance,
+                visibility: form.visibility,
             });
         } catch (requestError) {
             console.error(
@@ -79,7 +82,7 @@ export default function EditAccountForm({
                 </h2>
 
                 <p className="mt-1 text-sm text-slate-500">
-                    Update the account name or balance.
+                    The current balance is calculated automatically from the starting balance and transactions.
                 </p>
             </div>
 
@@ -117,22 +120,46 @@ export default function EditAccountForm({
                         htmlFor="edit-account-balance"
                         className="mb-2 block text-sm font-medium text-slate-700"
                     >
-                        Balance
+                        Starting balance
                     </label>
 
                     <input
                         id="edit-account-balance"
                         type="number"
                         step="0.01"
-                        value={form.balance}
+                        value={form.startingBalance}
                         onChange={(event) =>
                             setForm({
                                 ...form,
-                                balance: Number(event.target.value),
+                                startingBalance: Number(event.target.value),
                             })
                         }
                         className="w-full rounded-lg border border-slate-300 px-4 py-2.5 outline-none transition focus:border-blue-500 focus:ring-2 focus:ring-blue-100"
                     />
+                </div>
+
+                <div>
+                    <label
+                        htmlFor="edit-account-visibility"
+                        className="mb-2 block text-sm font-medium text-slate-700"
+                    >
+                        Visibility
+                    </label>
+
+                    <select
+                        id="edit-account-visibility"
+                        value={form.visibility}
+                        onChange={(event) =>
+                            setForm({
+                                ...form,
+                                visibility: event.target.value as UpdateAccount["visibility"],
+                            })
+                        }
+                        className="w-full rounded-lg border border-slate-300 bg-white px-4 py-2.5 outline-none transition focus:border-blue-500 focus:ring-2 focus:ring-blue-100"
+                    >
+                        <option value="Personal">Personal</option>
+                        <option value="Shared">Shared household account</option>
+                    </select>
                 </div>
             </div>
 

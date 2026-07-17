@@ -9,3 +9,11 @@ export type CategorySpending = {
     category: string;
     amount: number;
 };
+
+export type MonthlyTrend = {
+    month: string;
+    income: number;
+    expenses: number;
+    net: number;
+    savingsRate: number;
+};

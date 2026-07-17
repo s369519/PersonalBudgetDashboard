@@ -8,7 +8,8 @@ type AccountFormProps = {
 
 const initialForm: CreateAccount = {
     name: "",
-    balance: 0,
+    startingBalance: 0,
+    visibility: "Personal",
 };
 
 export default function AccountForm({
@@ -32,7 +33,8 @@ export default function AccountForm({
 
             await onSubmit({
                 name: form.name.trim(),
-                balance: form.balance,
+                startingBalance: form.startingBalance,
+                visibility: form.visibility,
             });
 
             setForm(initialForm);
@@ -109,15 +111,43 @@ export default function AccountForm({
                         id="account-balance"
                         type="number"
                         step="0.01"
-                        value={form.balance}
+                        value={form.startingBalance}
                         onChange={(event) =>
                             setForm({
                                 ...form,
-                                balance: Number(event.target.value),
+                                startingBalance: Number(event.target.value),
                             })
                         }
                         className="w-full rounded-lg border border-slate-300 px-4 py-2.5 outline-none transition focus:border-blue-500 focus:ring-2 focus:ring-blue-100"
                     />
+                </div>
+
+                <div>
+                    <label
+                        htmlFor="account-visibility"
+                        className="mb-2 block text-sm font-medium text-slate-700"
+                    >
+                        Visibility
+                    </label>
+
+                    <select
+                        id="account-visibility"
+                        value={form.visibility}
+                        onChange={(event) =>
+                            setForm({
+                                ...form,
+                                visibility: event.target.value as CreateAccount["visibility"],
+                            })
+                        }
+                        className="w-full rounded-lg border border-slate-300 bg-white px-4 py-2.5 outline-none transition focus:border-blue-500 focus:ring-2 focus:ring-blue-100"
+                    >
+                        <option value="Personal">Personal</option>
+                        <option value="Shared">Shared household account</option>
+                    </select>
+
+                    <p className="mt-2 text-xs text-slate-500">
+                        Shared accounts are visible to everyone in your household.
+                    </p>
                 </div>
             </div>
 

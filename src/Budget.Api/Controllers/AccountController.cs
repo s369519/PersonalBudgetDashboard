@@ -99,4 +99,31 @@ public class AccountsController : ControllerBase
 
         return NoContent();
     }
+
+    [HttpPut("{id:guid}/savings-goal")]
+    public async Task<IActionResult> SetSavingsGoal(
+        Guid id,
+        UpdateSavingsGoalDto dto)
+    {
+        var account = await _service.SetSavingsGoalAsync(
+            id,
+            dto,
+            User.GetUserId());
+
+        return account is null
+            ? NotFound()
+            : Ok(account);
+    }
+
+    [HttpDelete("{id:guid}/savings-goal")]
+    public async Task<IActionResult> ClearSavingsGoal(Guid id)
+    {
+        var account = await _service.ClearSavingsGoalAsync(
+            id,
+            User.GetUserId());
+
+        return account is null
+            ? NotFound()
+            : Ok(account);
+    }
 }

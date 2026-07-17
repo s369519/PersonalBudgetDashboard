@@ -15,4 +15,7 @@ public class RegisterDto
     [Required]
     [MinLength(8)]
     public string Password { get; set; } = string.Empty;
+
+    [StringLength(12)]
+    public string? HouseholdCode { get; set; }
 }

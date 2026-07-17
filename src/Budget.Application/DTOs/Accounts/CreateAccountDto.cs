@@ -1,4 +1,5 @@
 using System.ComponentModel.DataAnnotations;
+using Budget.Domain.Entities;
 
 namespace Budget.Application.DTOs.Accounts;
 
@@ -15,5 +16,8 @@ public class CreateAccountDto
         -1_000_000_000,
         1_000_000_000,
         ErrorMessage = "Balance must be between -1,000,000,000 and 1,000,000,000.")]
-    public decimal Balance { get; set; }
+    public decimal StartingBalance { get; set; }
+
+    public AccountVisibility Visibility { get; set; }
+        = AccountVisibility.Personal;
 }

@@ -3,6 +3,7 @@ using System.Security.Claims;
 using System.Text;
 using Budget.Application.DTOs.Auth;
 using Budget.Infrastructure.Identity;
+using Budget.Domain.Entities;
 using Microsoft.Extensions.Options;
 using Microsoft.IdentityModel.Tokens;
 
@@ -19,7 +20,8 @@ public class JwtTokenService
     }
 
     public AuthResponseDto CreateToken(
-        ApplicationUser user)
+        ApplicationUser user,
+        Household household)
     {
         if (string.IsNullOrWhiteSpace(_settings.Key))
         {
@@ -80,7 +82,9 @@ public class JwtTokenService
             ExpiresAt = expiresAt,
             UserId = user.Id,
             DisplayName = user.DisplayName,
-            Email = user.Email ?? string.Empty
+            Email = user.Email ?? string.Empty,
+            HouseholdName = household.Name,
+            HouseholdCode = household.JoinCode
         };
     }
 }

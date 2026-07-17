@@ -38,4 +38,14 @@ public class DashboardController : ControllerBase
 
         return Ok(result);
     }
+
+    [HttpGet("trends")]
+    public async Task<IActionResult> Trends([FromQuery] int months = 12)
+    {
+        var result = await _service.GetMonthlyTrendsAsync(
+            User.GetUserId(),
+            months);
+
+        return Ok(result);
+    }
 }

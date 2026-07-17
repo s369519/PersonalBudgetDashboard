@@ -16,17 +16,6 @@ public class CategoryRepository : ICategoryRepository
     }
 
 
-    public async Task<IEnumerable<Category>> GetAllAsync()
-    {
-        return await _context.Categories.ToListAsync();
-    }
-
-
-    public async Task<Category?> GetByIdAsync(Guid id)
-    {
-        return await _context.Categories.FindAsync(id);
-    }
-
     public async Task<Category> AddAsync(Category category)
     {
         _context.Categories.Add(category);
@@ -48,8 +37,18 @@ public class CategoryRepository : ICategoryRepository
 
     public async Task<IEnumerable<Category>> GetAllAsync(string userId)
     {
+        var householdId = await _context.Users
+            .Where(user => user.Id == userId)
+            .Select(user => user.HouseholdId)
+            .SingleOrDefaultAsync();
+
         return await _context.Categories
-            .Where(category => category.UserId == userId)
+            .Where(category =>
+                category.UserId == userId ||
+                householdId != null &&
+                _context.Users.Any(owner =>
+                    owner.Id == category.UserId &&
+                    owner.HouseholdId == householdId))
             .OrderBy(category => category.Name)
             .ToListAsync();
     }
@@ -58,9 +57,18 @@ public class CategoryRepository : ICategoryRepository
         Guid id,
         string userId)
     {
+        var householdId = await _context.Users
+            .Where(user => user.Id == userId)
+            .Select(user => user.HouseholdId)
+            .SingleOrDefaultAsync();
+
         return await _context.Categories
             .FirstOrDefaultAsync(category =>
                 category.Id == id &&
-                category.UserId == userId);
+                (category.UserId == userId ||
+                 householdId != null &&
+                 _context.Users.Any(owner =>
+                     owner.Id == category.UserId &&
+                     owner.HouseholdId == householdId)));
     }
 }

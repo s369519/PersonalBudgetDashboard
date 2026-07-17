@@ -56,6 +56,8 @@ export function AuthProvider({
             displayName: response.data.displayName,
             email: response.data.email,
             expiresAt: response.data.expiresAt,
+            householdName: response.data.householdName,
+            householdCode: response.data.householdCode,
         });
     }
 
@@ -72,6 +74,8 @@ export function AuthProvider({
             displayName: response.data.displayName,
             email: response.data.email,
             expiresAt: response.data.expiresAt,
+            householdName: response.data.householdName,
+            householdCode: response.data.householdCode,
         });
     }
 

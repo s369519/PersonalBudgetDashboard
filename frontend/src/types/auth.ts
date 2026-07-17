@@ -7,6 +7,7 @@ export type RegisterRequest = {
     displayName: string;
     email: string;
     password: string;
+    householdCode?: string;
 };
 
 export type AuthResponse = {
@@ -15,6 +16,8 @@ export type AuthResponse = {
     userId: string;
     displayName: string;
     email: string;
+    householdName: string;
+    householdCode: string;
 };
 
 export type AuthUser = {
@@ -22,4 +25,6 @@ export type AuthUser = {
     displayName: string;
     email: string;
     expiresAt: string;
+    householdName: string;
+    householdCode: string;
 };

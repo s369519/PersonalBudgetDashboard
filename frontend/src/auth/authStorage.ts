@@ -12,6 +12,8 @@ export function saveAuthSession(response: AuthResponse) {
         displayName: response.displayName,
         email: response.email,
         expiresAt: response.expiresAt,
+        householdName: response.householdName,
+        householdCode: response.householdCode,
     };
 
     localStorage.setItem(TOKEN_KEY, response.token);

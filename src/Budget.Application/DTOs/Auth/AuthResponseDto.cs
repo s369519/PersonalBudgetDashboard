@@ -11,4 +11,8 @@ public class AuthResponseDto
     public string DisplayName { get; set; } = string.Empty;
 
     public string Email { get; set; } = string.Empty;
+
+    public string HouseholdName { get; set; } = string.Empty;
+
+    public string HouseholdCode { get; set; } = string.Empty;
 }

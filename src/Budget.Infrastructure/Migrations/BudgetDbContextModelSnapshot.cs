@@ -28,8 +28,81 @@ namespace Budget.Infrastructure.Migrations
                         .ValueGeneratedOnAdd()
                         .HasColumnType("uuid");
 
-                    b.Property<decimal>("Balance")
+                    b.Property<string>("Name")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)");
+
+                    b.Property<decimal?>("SavingsGoalAmount")
                         .HasColumnType("numeric");
+
+                    b.Property<DateOnly?>("SavingsGoalDate")
+                        .HasColumnType("date");
+
+                    b.Property<decimal>("StartingBalance")
+                        .HasColumnType("numeric");
+
+                    b.Property<string>("UserId")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.Property<string>("Visibility")
+                        .IsRequired()
+                        .HasMaxLength(20)
+                        .HasColumnType("character varying(20)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("UserId");
+
+                    b.ToTable("Accounts");
+                });
+
+            modelBuilder.Entity("Budget.Domain.Entities.BudgetItem", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid");
+
+                    b.Property<decimal>("Amount")
+                        .HasColumnType("numeric");
+
+                    b.Property<Guid>("BudgetSheetId")
+                        .HasColumnType("uuid");
+
+                    b.Property<Guid?>("CategoryId")
+                        .HasColumnType("uuid");
+
+                    b.Property<string>("Description")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)");
+
+                    b.Property<int>("SortOrder")
+                        .HasColumnType("integer");
+
+                    b.Property<string>("Type")
+                        .IsRequired()
+                        .HasMaxLength(20)
+                        .HasColumnType("character varying(20)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("BudgetSheetId");
+
+                    b.HasIndex("CategoryId");
+
+                    b.ToTable("BudgetItems");
+                });
+
+            modelBuilder.Entity("Budget.Domain.Entities.BudgetSheet", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid");
+
+                    b.Property<DateOnly>("Month")
+                        .HasColumnType("date");
 
                     b.Property<string>("Name")
                         .IsRequired()
@@ -40,11 +113,16 @@ namespace Budget.Infrastructure.Migrations
                         .IsRequired()
                         .HasColumnType("text");
 
+                    b.Property<string>("Visibility")
+                        .IsRequired()
+                        .HasMaxLength(20)
+                        .HasColumnType("character varying(20)");
+
                     b.HasKey("Id");
 
                     b.HasIndex("UserId");
 
-                    b.ToTable("Accounts");
+                    b.ToTable("BudgetSheets");
                 });
 
             modelBuilder.Entity("Budget.Domain.Entities.Category", b =>
@@ -67,6 +145,30 @@ namespace Budget.Infrastructure.Migrations
                     b.HasIndex("UserId");
 
                     b.ToTable("Categories");
+                });
+
+            modelBuilder.Entity("Budget.Domain.Entities.Household", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid");
+
+                    b.Property<string>("JoinCode")
+                        .IsRequired()
+                        .HasMaxLength(12)
+                        .HasColumnType("character varying(12)");
+
+                    b.Property<string>("Name")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("JoinCode")
+                        .IsUnique();
+
+                    b.ToTable("Households");
                 });
 
             modelBuilder.Entity("Budget.Domain.Entities.Transaction", b =>
@@ -124,6 +226,9 @@ namespace Budget.Infrastructure.Migrations
                     b.Property<bool>("EmailConfirmed")
                         .HasColumnType("boolean");
 
+                    b.Property<Guid?>("HouseholdId")
+                        .HasColumnType("uuid");
+
                     b.Property<bool>("LockoutEnabled")
                         .HasColumnType("boolean");
 
@@ -158,6 +263,8 @@ namespace Budget.Infrastructure.Migrations
                         .HasColumnType("character varying(256)");
 
                     b.HasKey("Id");
+
+                    b.HasIndex("HouseholdId");
 
                     b.HasIndex("NormalizedEmail")
                         .HasDatabaseName("EmailIndex");
@@ -310,6 +417,33 @@ namespace Budget.Infrastructure.Migrations
                         .IsRequired();
                 });
 
+            modelBuilder.Entity("Budget.Domain.Entities.BudgetItem", b =>
+                {
+                    b.HasOne("Budget.Domain.Entities.BudgetSheet", "BudgetSheet")
+                        .WithMany("Items")
+                        .HasForeignKey("BudgetSheetId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("Budget.Domain.Entities.Category", "Category")
+                        .WithMany()
+                        .HasForeignKey("CategoryId")
+                        .OnDelete(DeleteBehavior.SetNull);
+
+                    b.Navigation("BudgetSheet");
+
+                    b.Navigation("Category");
+                });
+
+            modelBuilder.Entity("Budget.Domain.Entities.BudgetSheet", b =>
+                {
+                    b.HasOne("Budget.Infrastructure.Identity.ApplicationUser", null)
+                        .WithMany()
+                        .HasForeignKey("UserId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+                });
+
             modelBuilder.Entity("Budget.Domain.Entities.Category", b =>
                 {
                     b.HasOne("Budget.Infrastructure.Identity.ApplicationUser", null)
@@ -336,6 +470,14 @@ namespace Budget.Infrastructure.Migrations
                     b.Navigation("Account");
 
                     b.Navigation("Category");
+                });
+
+            modelBuilder.Entity("Budget.Infrastructure.Identity.ApplicationUser", b =>
+                {
+                    b.HasOne("Budget.Domain.Entities.Household", null)
+                        .WithMany()
+                        .HasForeignKey("HouseholdId")
+                        .OnDelete(DeleteBehavior.SetNull);
                 });
 
             modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityRoleClaim<string>", b =>
@@ -392,6 +534,11 @@ namespace Budget.Infrastructure.Migrations
             modelBuilder.Entity("Budget.Domain.Entities.Account", b =>
                 {
                     b.Navigation("Transactions");
+                });
+
+            modelBuilder.Entity("Budget.Domain.Entities.BudgetSheet", b =>
+                {
+                    b.Navigation("Items");
                 });
 
             modelBuilder.Entity("Budget.Domain.Entities.Category", b =>

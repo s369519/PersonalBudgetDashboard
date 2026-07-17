@@ -4,6 +4,8 @@ import {
     ReceiptText,
     Tags,
     WalletCards,
+    TableProperties,
+    TrendingUp,
 } from "lucide-react";
 
 import {
@@ -28,6 +30,16 @@ const navigationItems = [
         name: "Accounts",
         path: "/accounts",
         icon: WalletCards,
+    },
+    {
+        name: "Trends",
+        path: "/trends",
+        icon: TrendingUp,
+    },
+    {
+        name: "Budgets",
+        path: "/budgets",
+        icon: TableProperties,
     },
     {
         name: "Categories",
@@ -100,6 +112,10 @@ export default function Sidebar() {
 
                     <p className="truncate text-xs text-slate-400">
                         {user?.email}
+                    </p>
+
+                    <p className="mt-2 truncate text-xs text-slate-500">
+                        Household code: {user?.householdCode}
                     </p>
                 </div>
 

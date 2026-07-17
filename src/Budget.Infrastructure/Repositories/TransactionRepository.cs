@@ -16,23 +16,43 @@ public class TransactionRepository : ITransactionRepository
 
     public async Task<IEnumerable<Transaction>> GetAllAsync(string userId)
     {
+        var householdId = await _context.Users
+            .Where(user => user.Id == userId)
+            .Select(user => user.HouseholdId)
+            .SingleOrDefaultAsync();
+
         return await _context.Transactions
             .Include(transaction => transaction.Account)
             .Include(transaction => transaction.Category)
             .Where(transaction =>
-                transaction.Account.UserId == userId)
+                transaction.Account.UserId == userId ||
+                transaction.Account.Visibility == AccountVisibility.Shared &&
+                householdId != null &&
+                _context.Users.Any(owner =>
+                    owner.Id == transaction.Account.UserId &&
+                    owner.HouseholdId == householdId))
             .OrderByDescending(transaction => transaction.Date)
             .ToListAsync();
     }
 
     public async Task<Transaction?> GetByIdAsync(Guid id, string userId)
     {
+        var householdId = await _context.Users
+            .Where(user => user.Id == userId)
+            .Select(user => user.HouseholdId)
+            .SingleOrDefaultAsync();
+
         return await _context.Transactions
             .Include(transaction => transaction.Account)
             .Include(transaction => transaction.Category)
             .FirstOrDefaultAsync(transaction =>
                 transaction.Id == id &&
-                transaction.Account.UserId == userId);
+                (transaction.Account.UserId == userId ||
+                 transaction.Account.Visibility == AccountVisibility.Shared &&
+                 householdId != null &&
+                 _context.Users.Any(owner =>
+                     owner.Id == transaction.Account.UserId &&
+                     owner.HouseholdId == householdId)));
     }
 
     public async Task<Transaction> AddAsync(Transaction transaction)

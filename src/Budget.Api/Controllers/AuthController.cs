@@ -1,8 +1,11 @@
 using Budget.Api.Authentication;
 using Budget.Application.DTOs.Auth;
 using Budget.Infrastructure.Identity;
+using Budget.Infrastructure.Data;
+using Budget.Domain.Entities;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
 
 namespace Budget.Api.Controllers;
 
@@ -12,13 +15,16 @@ public class AuthController : ControllerBase
 {
     private readonly UserManager<ApplicationUser> _userManager;
     private readonly JwtTokenService _jwtTokenService;
+    private readonly BudgetDbContext _dbContext;
 
     public AuthController(
         UserManager<ApplicationUser> userManager,
-        JwtTokenService jwtTokenService)
+        JwtTokenService jwtTokenService,
+        BudgetDbContext dbContext)
     {
         _userManager = userManager;
         _jwtTokenService = jwtTokenService;
+        _dbContext = dbContext;
     }
 
     [HttpPost("register")]
@@ -40,12 +46,49 @@ public class AuthController : ControllerBase
             });
         }
 
+        Household household;
+        var householdCode = dto.HouseholdCode?.Trim().ToUpperInvariant();
+
+        if (string.IsNullOrWhiteSpace(householdCode))
+        {
+            household = new Household
+            {
+                Id = Guid.NewGuid(),
+                Name = $"{dto.DisplayName.Trim()}'s household",
+                JoinCode = await CreateUniqueHouseholdCodeAsync()
+            };
+
+            _dbContext.Households.Add(household);
+        }
+        else
+        {
+            var existingHousehold = await _dbContext.Households
+                .SingleOrDefaultAsync(item =>
+                    item.JoinCode == householdCode);
+
+            if (existingHousehold is null)
+            {
+                return BadRequest(new
+                {
+                    title = "The household code is invalid."
+                });
+            }
+
+            household = existingHousehold;
+        }
+
         var user = new ApplicationUser
         {
             DisplayName = dto.DisplayName.Trim(),
             Email = normalizedEmail,
-            UserName = normalizedEmail
+            UserName = normalizedEmail,
+            HouseholdId = household.Id
         };
+
+        if (_dbContext.Entry(household).State == EntityState.Added)
+        {
+            await _dbContext.SaveChangesAsync();
+        }
 
         var result = await _userManager.CreateAsync(
             user,
@@ -53,6 +96,13 @@ public class AuthController : ControllerBase
 
         if (!result.Succeeded)
         {
+            if (!await _dbContext.Users.AnyAsync(item =>
+                    item.HouseholdId == household.Id))
+            {
+                _dbContext.Households.Remove(household);
+                await _dbContext.SaveChangesAsync();
+            }
+
             var errors = result.Errors
                 .GroupBy(error => error.Code)
                 .ToDictionary(
@@ -69,7 +119,7 @@ public class AuthController : ControllerBase
             });
         }
 
-        return Ok(_jwtTokenService.CreateToken(user));
+        return Ok(_jwtTokenService.CreateToken(user, household));
     }
 
     [HttpPost("login")]
@@ -104,6 +154,52 @@ public class AuthController : ControllerBase
             });
         }
 
-        return Ok(_jwtTokenService.CreateToken(user));
+        var household = await EnsureHouseholdAsync(user);
+
+        return Ok(_jwtTokenService.CreateToken(user, household));
+    }
+
+    private async Task<Household> EnsureHouseholdAsync(
+        ApplicationUser user)
+    {
+        if (user.HouseholdId is Guid householdId)
+        {
+            var existingHousehold = await _dbContext.Households
+                .FindAsync(householdId);
+
+            if (existingHousehold is not null)
+            {
+                return existingHousehold;
+            }
+        }
+
+        var household = new Household
+        {
+            Id = Guid.NewGuid(),
+            Name = $"{user.DisplayName}'s household",
+            JoinCode = await CreateUniqueHouseholdCodeAsync()
+        };
+
+        _dbContext.Households.Add(household);
+        user.HouseholdId = household.Id;
+        await _dbContext.SaveChangesAsync();
+
+        return household;
+    }
+
+    private async Task<string> CreateUniqueHouseholdCodeAsync()
+    {
+        string code;
+
+        do
+        {
+            code = Guid.NewGuid()
+                .ToString("N")[..8]
+                .ToUpperInvariant();
+        }
+        while (await _dbContext.Households.AnyAsync(
+            household => household.JoinCode == code));
+
+        return code;
     }
 }

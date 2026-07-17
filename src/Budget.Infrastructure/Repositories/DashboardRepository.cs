@@ -15,21 +15,49 @@ public class DashboardRepository : IDashboardRepository
     }
 
     public async Task<IEnumerable<Transaction>> GetTransactionsAsync(
-        string userId)
+        string userId,
+        DateTime from,
+        DateTime to)
     {
+        var householdId = await _context.Users
+            .Where(user => user.Id == userId)
+            .Select(user => user.HouseholdId)
+            .SingleOrDefaultAsync();
+
         return await _context.Transactions
             .Include(transaction => transaction.Account)
             .Include(transaction => transaction.Category)
             .Where(transaction =>
-                transaction.Account.UserId == userId)
+                transaction.Date >= from &&
+                transaction.Date < to &&
+                (transaction.Account.UserId == userId ||
+                 transaction.Account.Visibility == AccountVisibility.Shared &&
+                 householdId != null &&
+                 _context.Users.Any(owner =>
+                     owner.Id == transaction.Account.UserId &&
+                     owner.HouseholdId == householdId)))
             .ToListAsync();
     }
 
     public async Task<decimal> GetTotalBalanceAsync(
         string userId)
     {
+        var householdId = await _context.Users
+            .Where(user => user.Id == userId)
+            .Select(user => user.HouseholdId)
+            .SingleOrDefaultAsync();
+
         return await _context.Accounts
-            .Where(account => account.UserId == userId)
-            .SumAsync(account => account.Balance);
+            .Where(account =>
+                account.UserId == userId ||
+                account.Visibility == AccountVisibility.Shared &&
+                householdId != null &&
+                _context.Users.Any(owner =>
+                    owner.Id == account.UserId &&
+                    owner.HouseholdId == householdId))
+            .SumAsync(account =>
+                account.StartingBalance +
+                (account.Transactions.Sum(transaction =>
+                    (decimal?)transaction.Amount) ?? 0));
     }
 }

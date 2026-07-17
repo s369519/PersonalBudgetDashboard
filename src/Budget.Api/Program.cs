@@ -11,10 +11,14 @@ using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.IdentityModel.Tokens;
 using System.Security.Claims;
+using System.Text.Json.Serialization;
 
 var builder = WebApplication.CreateBuilder(args);
 
-builder.Services.AddControllers();
+builder.Services.AddControllers()
+    .AddJsonOptions(options =>
+        options.JsonSerializerOptions.Converters.Add(
+            new JsonStringEnumConverter()));
 
 builder.Services.AddDbContext<BudgetDbContext>(options =>
     options.UseNpgsql(
@@ -74,32 +78,23 @@ builder.Services
     });
 
 builder.Services.AddAuthorization();
-
 builder.Services.AddScoped<JwtTokenService>();
-
 builder.Services.AddScoped<IAccountRepository, AccountRepository>();
 builder.Services.AddScoped<AccountService>();
-
-
 builder.Services.AddScoped<ICategoryRepository, CategoryRepository>();
 builder.Services.AddScoped<CategoryService>();
-
 builder.Services.AddScoped<
     ITransactionRepository,
     TransactionRepository>();
-
 builder.Services.AddScoped<TransactionService>();
-
 builder.Services.AddScoped<
     IDashboardRepository,
     DashboardRepository>();
-
 builder.Services.AddScoped<DashboardService>();
-
+builder.Services.AddScoped<IBudgetRepository, BudgetRepository>();
+builder.Services.AddScoped<BudgetService>();
 builder.Services.AddCors(options =>
-
 {
-
     options.AddPolicy("React",
         policy =>
         {
@@ -110,15 +105,11 @@ builder.Services.AddCors(options =>
         });
 });
 
-
-// Add services to the container.
-// Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
 
 var app = builder.Build();
 
-// Configure the HTTP request pipeline.
 if (app.Environment.IsDevelopment())
 {
     app.UseSwagger();
@@ -126,14 +117,9 @@ if (app.Environment.IsDevelopment())
 }
 
 app.UseHttpsRedirection();
-
 app.UseCors("React");
-
 app.UseMiddleware<ExceptionHandlingMiddleware>();
-
 app.UseAuthentication();
 app.UseAuthorization();
-
 app.MapControllers();
-
 app.Run();

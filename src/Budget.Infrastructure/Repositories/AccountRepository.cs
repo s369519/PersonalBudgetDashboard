@@ -17,8 +17,20 @@ public class AccountRepository : IAccountRepository
     public async Task<IEnumerable<Account>> GetAllAsync(
         string userId)
     {
+        var householdId = await _context.Users
+            .Where(user => user.Id == userId)
+            .Select(user => user.HouseholdId)
+            .SingleOrDefaultAsync();
+
         return await _context.Accounts
-            .Where(account => account.UserId == userId)
+            .Include(account => account.Transactions)
+            .Where(account =>
+                account.UserId == userId ||
+                account.Visibility == AccountVisibility.Shared &&
+                householdId != null &&
+                _context.Users.Any(owner =>
+                    owner.Id == account.UserId &&
+                    owner.HouseholdId == householdId))
             .OrderBy(account => account.Name)
             .ToListAsync();
     }
@@ -27,10 +39,21 @@ public class AccountRepository : IAccountRepository
         Guid id,
         string userId)
     {
+        var householdId = await _context.Users
+            .Where(user => user.Id == userId)
+            .Select(user => user.HouseholdId)
+            .SingleOrDefaultAsync();
+
         return await _context.Accounts
+            .Include(account => account.Transactions)
             .FirstOrDefaultAsync(account =>
                 account.Id == id &&
-                account.UserId == userId);
+                (account.UserId == userId ||
+                 account.Visibility == AccountVisibility.Shared &&
+                 householdId != null &&
+                 _context.Users.Any(owner =>
+                     owner.Id == account.UserId &&
+                     owner.HouseholdId == householdId)));
     }
 
     public async Task<Account> AddAsync(Account account)

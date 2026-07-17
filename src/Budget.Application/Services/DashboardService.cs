@@ -17,8 +17,9 @@ public class DashboardService
 
     public async Task<DashboardSummaryDto> GetSummaryAsync(string userId)
     {
+        var (from, to) = GetCurrentMonthRange();
         var transactions =
-            await _repository.GetTransactionsAsync(userId);
+            await _repository.GetTransactionsAsync(userId, from, to);
 
 
         var balance =
@@ -60,8 +61,9 @@ public class DashboardService
 
     public async Task<IEnumerable<CategorySpendingDto>> GetCategorySpendingAsync(string userId)
     {
+        var (from, to) = GetCurrentMonthRange();
         var transactions =
-            await _repository.GetTransactionsAsync(userId);
+            await _repository.GetTransactionsAsync(userId, from, to);
 
 
         return transactions
@@ -74,6 +76,68 @@ public class DashboardService
                 Amount = x.Sum(t =>
                     Math.Abs(t.Amount))
             });
+    }
+
+    public async Task<IEnumerable<MonthlyTrendDto>> GetMonthlyTrendsAsync(
+        string userId,
+        int numberOfMonths = 12)
+    {
+        numberOfMonths = Math.Clamp(numberOfMonths, 2, 36);
+        var currentMonth = new DateTime(
+            DateTime.UtcNow.Year,
+            DateTime.UtcNow.Month,
+            1,
+            0,
+            0,
+            0,
+            DateTimeKind.Utc);
+        var from = currentMonth.AddMonths(-(numberOfMonths - 1));
+        var to = currentMonth.AddMonths(1);
+        var transactions = (await _repository.GetTransactionsAsync(
+            userId,
+            from,
+            to)).ToList();
+
+        return Enumerable.Range(0, numberOfMonths)
+            .Select(offset => from.AddMonths(offset))
+            .Select(month =>
+            {
+                var monthEnd = month.AddMonths(1);
+                var monthTransactions = transactions.Where(item =>
+                    item.Date >= month && item.Date < monthEnd);
+                var income = monthTransactions
+                    .Where(item => item.Amount > 0)
+                    .Sum(item => item.Amount);
+                var expenses = monthTransactions
+                    .Where(item => item.Amount < 0)
+                    .Sum(item => Math.Abs(item.Amount));
+                var net = income - expenses;
+
+                return new MonthlyTrendDto
+                {
+                    Month = DateOnly.FromDateTime(month),
+                    Income = income,
+                    Expenses = expenses,
+                    Net = net,
+                    SavingsRate = income == 0
+                        ? 0
+                        : Math.Round(net / income * 100, 1)
+                };
+            });
+    }
+
+    private static (DateTime From, DateTime To) GetCurrentMonthRange()
+    {
+        var from = new DateTime(
+            DateTime.UtcNow.Year,
+            DateTime.UtcNow.Month,
+            1,
+            0,
+            0,
+            0,
+            DateTimeKind.Utc);
+
+        return (from, from.AddMonths(1));
     }
 
     

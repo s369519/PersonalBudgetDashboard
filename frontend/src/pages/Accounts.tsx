@@ -1,14 +1,16 @@
 import { useEffect, useState } from "react";
-import { Pencil, Trash2, WalletCards } from "lucide-react";
+import { Pencil, Target, Trash2, WalletCards } from "lucide-react";
 import { getApiErrorMessage } from "../utils/getApiError";
 import api from "../api/client";
 import AccountForm from "../components/forms/AccountForm";
 import EditAccountForm from "../components/forms/EditAccountForm";
+import SavingsGoalForm from "../components/forms/SavingsGoalForm";
 
 import type {
     Account,
     CreateAccount,
     UpdateAccount,
+    UpdateSavingsGoal,
 } from "../types/account";
 
 function formatCurrency(amount: number) {
@@ -25,6 +27,7 @@ export default function Accounts() {
     const [error, setError] = useState<string | null>(null);
     const [deletingId, setDeletingId] = useState<string | null>(null);
     const [editingAccount, setEditingAccount] = useState<Account | null>(null);
+    const [goalAccount, setGoalAccount] = useState<Account | null>(null);
 
     async function loadAccounts() {
         try {
@@ -61,6 +64,22 @@ export default function Accounts() {
 
         setEditingAccount(null);
 
+        await loadAccounts();
+    }
+
+    async function handleSaveGoal(goal: UpdateSavingsGoal) {
+        if (!goalAccount) return;
+
+        await api.put(`/Accounts/${goalAccount.id}/savings-goal`, goal);
+        setGoalAccount(null);
+        await loadAccounts();
+    }
+
+    async function handleClearGoal() {
+        if (!goalAccount) return;
+
+        await api.delete(`/Accounts/${goalAccount.id}/savings-goal`);
+        setGoalAccount(null);
         await loadAccounts();
     }
 
@@ -140,6 +159,13 @@ export default function Accounts() {
                         onSubmit={handleUpdateAccount}
                         onCancel={() => setEditingAccount(null)}
                     />
+                ) : goalAccount ? (
+                    <SavingsGoalForm
+                        account={goalAccount}
+                        onSubmit={handleSaveGoal}
+                        onClear={handleClearGoal}
+                        onCancel={() => setGoalAccount(null)}
+                    />
                 ) : (
                     <AccountForm onSubmit={handleCreateAccount} />
                 )}
@@ -189,12 +215,34 @@ export default function Accounts() {
                                             <h3 className="mt-1 text-lg font-semibold text-slate-900">
                                                 {account.name}
                                             </h3>
+
+                                            <span className={`mt-2 inline-flex rounded-full px-2 py-1 text-xs font-medium ${
+                                                account.visibility === "Shared"
+                                                    ? "bg-blue-50 text-blue-700"
+                                                    : "bg-slate-100 text-slate-600"
+                                            }`}>
+                                                {account.visibility}
+                                            </span>
                                         </div>
 
                                         <div className="flex gap-1">
                                             <button
                                                 type="button"
-                                                onClick={() => setEditingAccount(account)}
+                                                onClick={() => {
+                                                    setEditingAccount(null);
+                                                    setGoalAccount(account);
+                                                }}
+                                                aria-label={`Set savings goal for ${account.name}`}
+                                                className="rounded-lg p-2 text-slate-400 transition hover:bg-emerald-50 hover:text-emerald-600"
+                                            >
+                                                <Target size={18} />
+                                            </button>
+                                            <button
+                                                type="button"
+                                                onClick={() => {
+                                                    setGoalAccount(null);
+                                                    setEditingAccount(account);
+                                                }}
                                                 aria-label={`Edit ${account.name}`}
                                                 className="rounded-lg p-2 text-slate-400 transition hover:bg-blue-50 hover:text-blue-600"
                                             >
@@ -215,6 +263,46 @@ export default function Accounts() {
                                     <p className="mt-8 text-2xl font-bold text-slate-900">
                                         {formatCurrency(account.balance)}
                                     </p>
+                                    <p className="mt-1 text-xs text-slate-500">
+                                        Starting balance: {formatCurrency(account.startingBalance)}
+                                    </p>
+
+                                    {account.savingsGoalAmount !== null &&
+                                        account.savingsGoalDate && (
+                                        <div className="mt-5 border-t border-slate-100 pt-4">
+                                            <div className="flex items-center justify-between text-sm">
+                                                <span className="text-slate-500">
+                                                    Goal by {new Intl.DateTimeFormat("nb-NO").format(
+                                                        new Date(`${account.savingsGoalDate}T00:00:00`),
+                                                    )}
+                                                </span>
+                                                <span className="font-medium text-slate-700">
+                                                    {formatCurrency(account.savingsGoalAmount)}
+                                                </span>
+                                            </div>
+
+                                            <div className="mt-3 h-2 overflow-hidden rounded-full bg-slate-100">
+                                                <div
+                                                    className="h-full rounded-full bg-emerald-500"
+                                                    style={{
+                                                        width: `${Math.min(
+                                                            100,
+                                                            Math.max(0, account.balance / account.savingsGoalAmount * 100),
+                                                        )}%`,
+                                                    }}
+                                                />
+                                            </div>
+
+                                            <p className="mt-3 text-sm text-slate-600">
+                                                Save <span className="font-semibold text-emerald-700">
+                                                    {formatCurrency(account.requiredMonthlySavings ?? 0)}
+                                                </span> per month
+                                            </p>
+                                            <p className="mt-1 text-xs text-slate-500">
+                                                {formatCurrency(account.savingsGoalRemaining ?? 0)} remaining
+                                            </p>
+                                        </div>
+                                    )}
                                 </article>
                             ))}
                         </div>

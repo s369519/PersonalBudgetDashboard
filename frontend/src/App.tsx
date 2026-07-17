@@ -15,6 +15,8 @@ import Dashboard from "./pages/Dashboard";
 import Login from "./pages/Login";
 import Register from "./pages/Register";
 import Transactions from "./pages/Transactions";
+import Budgets from "./pages/Budgets";
+import Trends from "./pages/Trends";
 
 export default function App() {
     return (
@@ -51,6 +53,16 @@ export default function App() {
                             <Route
                                 path="/categories"
                                 element={<Categories />}
+                            />
+
+                            <Route
+                                path="/budgets"
+                                element={<Budgets />}
+                            />
+
+                            <Route
+                                path="/trends"
+                                element={<Trends />}
                             />
                         </Route>
                     </Route>

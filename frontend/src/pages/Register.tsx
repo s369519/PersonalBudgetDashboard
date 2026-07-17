@@ -19,6 +19,7 @@ export default function Register() {
     const [displayName, setDisplayName] = useState("");
     const [email, setEmail] = useState("");
     const [password, setPassword] = useState("");
+    const [householdCode, setHouseholdCode] = useState("");
 
     const [isSubmitting, setIsSubmitting] = useState(false);
     const [error, setError] = useState<string | null>(null);
@@ -57,6 +58,7 @@ export default function Register() {
                 displayName: displayName.trim(),
                 email: email.trim(),
                 password,
+                householdCode: householdCode.trim() || undefined,
             });
 
             navigate("/", {
@@ -163,6 +165,32 @@ export default function Register() {
                         <p className="mt-2 text-xs text-slate-500">
                             At least 8 characters, including uppercase,
                             lowercase and a number.
+                        </p>
+                    </div>
+
+                    <div>
+                        <label
+                            htmlFor="household-code"
+                            className="mb-2 block text-sm font-medium text-slate-700"
+                        >
+                            Household code (optional)
+                        </label>
+
+                        <input
+                            id="household-code"
+                            type="text"
+                            autoComplete="off"
+                            maxLength={12}
+                            value={householdCode}
+                            onChange={(event) =>
+                                setHouseholdCode(event.target.value.toUpperCase())
+                            }
+                            placeholder="Enter your partner's code"
+                            className="w-full rounded-lg border border-slate-300 px-4 py-2.5 uppercase outline-none transition focus:border-blue-500 focus:ring-2 focus:ring-blue-100"
+                        />
+
+                        <p className="mt-2 text-xs text-slate-500">
+                            Leave this empty to create a new household.
                         </p>
                     </div>
 
