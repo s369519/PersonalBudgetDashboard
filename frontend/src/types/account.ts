@@ -3,3 +3,8 @@ export type Account = {
     name: string;
     balance: number;
 };
+
+export type CreateAccount = {
+    name: string;
+    balance: number;
+};
