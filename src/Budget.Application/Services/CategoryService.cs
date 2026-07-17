@@ -46,4 +46,15 @@ public class CategoryService
             Name = created.Name
         };
     }
+
+    public async Task<bool> DeleteAsync(Guid id)
+    {
+        var category = await _repository.GetByIdAsync(id);
+        if (category is null)
+        {
+            return false;
+        }
+        await _repository.DeleteAsync(category);
+        return true;
+    }
 }

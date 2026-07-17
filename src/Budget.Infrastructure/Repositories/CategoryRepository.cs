@@ -24,17 +24,13 @@ public class CategoryRepository : ICategoryRepository
 
     public async Task<Category?> GetByIdAsync(Guid id)
     {
-        return await _context.Categories
-            .FirstOrDefaultAsync(x => x.Id == id);
+        return await _context.Categories.FindAsync(id);
     }
-
 
     public async Task<Category> AddAsync(Category category)
     {
         _context.Categories.Add(category);
-
         await _context.SaveChangesAsync();
-
         return category;
     }
 
@@ -42,7 +38,6 @@ public class CategoryRepository : ICategoryRepository
     public async Task DeleteAsync(Category category)
     {
         _context.Categories.Remove(category);
-
         await _context.SaveChangesAsync();
     }
 }
