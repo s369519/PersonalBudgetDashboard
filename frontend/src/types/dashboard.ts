@@ -5,7 +5,6 @@ export interface DashboardSummary {
     largestExpense: number;
 }
 
-
 export interface CategorySpending {
     category: string;
     amount: number;
