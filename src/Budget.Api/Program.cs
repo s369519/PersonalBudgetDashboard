@@ -3,12 +3,6 @@ using Microsoft.EntityFrameworkCore;
 using Budget.Application.Interfaces;
 using Budget.Application.Services;
 using Budget.Infrastructure.Repositories;
-using Budget.Application.Interfaces;
-using Budget.Application.Services;
-using Budget.Infrastructure.Repositories;
-using Budget.Infrastructure.Repositories;
-using Budget.Application.Services;
-using Budget.Application.Interfaces;
 using Budget.Api.Middleware;
 
 var builder = WebApplication.CreateBuilder(args);
